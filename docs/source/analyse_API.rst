@@ -12,11 +12,11 @@ Get parameters
 		  
 .. autoclass:: runana.analyse.Seqs
 
-.. autofunction:: runana.analyse.read_input_files_f90nml
+.. autofunction:: runana.input_file_handling.read_input_files_f90nml
 
-.. autofunction:: runana.analyse.read_input_files_upname
+.. autofunction:: runana.input_file_handling.read_input_files_upname
 
-.. autofunction:: runana.analyse.read_upname_file  
+.. autofunction:: runana.input_file_handling.read_upname_file  
 
 Get other stuff
 """""""""""""""

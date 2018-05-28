@@ -8,12 +8,12 @@ from io import FileIO
 from glob import glob
 from functools import wraps
 from contextlib import contextmanager
+from runana import input_file_handling
 
 try:
     basestring          # Python 2.x
 except NameError:
     basestring = str    # Python 3.x
-
 
 from operator import add,mul
 try:
@@ -22,8 +22,6 @@ except ImportError:
     from operator import truediv as div
 
 OPERATIONS = {'add':add,'mul':mul,'div':div}
-
-    
 
 @contextmanager
 def cwd(path):
@@ -34,7 +32,6 @@ def cwd(path):
         yield
     finally:
         chdir(oldpwd)
-
 
 def generate_seq(start, incr, nvalues=0, incr_func=add):
     """Iterator that returns a sequence of numbers
@@ -73,59 +70,6 @@ class Dirs(object):
 def makedir(dir_):
     if not path.exists(dir_): makedirs(dir_)
 
-def patch_from_tupled_dict(tupled_dict):
-    patch = {}
-    for replace_this, replace_val in tupled_dict.items():
-        group, field = replace_this
-        gdict = patch.get(group, {})
-        gdict.update({field:replace_val})
-        patch[group] = gdict
-    return patch
-
-def filter_inp_file_f90nml(inp_file_in, inp_file_out, replace_with_these):
-    """ Replaces elements in *inp_file_in* and places the result in *inp_file_out*
-
-     replace_with_these is a dict with entries of the form {'Name of parameter':*value to replace with*}
-
-    This version works on namelist files using the f90nml package
-    """
-    import f90nml
-    patch = patch_from_tupled_dict(replace_with_these)
-    if patch:
-        f90nml.patch(inp_file_in, patch, inp_file_out)
-    else:
-        from shutil import copy
-        copy(inp_file_init, inp_file)
-
-def filter_inp_file_upname(inp_file_in,inp_file_out,replace_with_these):
-    """ Replaces elements in *inp_file_in* and places the result in *inp_file_out*
-
-     replace_with_these is a dict with entries of the form {'Name of parameter':*value to replace with*}
-
-    This version replaces entries that is one line below a string matching *Name of parameter*, in 
-    the same position as the string
-    """
-    with open(inp_file_in,'r') as input_file_in:
-        with open(inp_file_out,'w') as input_file_out:
-            index_replace={}
-            for line in input_file_in:
-                if index_replace:
-                    lin=line.split()
-                    for replace_this in index_replace:
-                        lin[index_replace[replace_this]]=str(replace_with_these[replace_this])
-                    input_file_out.write('  '.join(lin)+'\n')
-                    index_replace={}
-                else:
-                    input_file_out.write(line)
-                for replace_this in replace_with_these:
-                    for index,word in enumerate(line.split()):
-                        if replace_this==word:
-                            index_replace[replace_this]=index
-
-#: Available input file filter functions
-INP_FILE_FILTERS = {'f90nml':filter_inp_file_f90nml,'upname':filter_inp_file_upname}
-                            
-        
 class OpenWithNone(FileIO):
     def __init__(self, file_string, *args, **kwargs):
         self.file_string = file_string
@@ -257,13 +201,11 @@ def lock_wrap_retry(Dir, nretries=10, wait=0.1):
         return call
     return decorate
 
-
 def save_info_in_file(filename, command, copy_back=None):
     with open(filename, 'w') as output_file:
         call(command, stdout=output_file)
     if copy_back:
         copy_ignore_same(filename, copy_back)
-
 
 def calc_all(replacements, dirs, inp_file, programs, print_finish=True, filter_func='f90nml', use_stdin=False):
 
@@ -272,7 +214,7 @@ def calc_all(replacements, dirs, inp_file, programs, print_finish=True, filter_f
         make_run_dirs)(base_dir, dirs.local_scratch_base)
 
     inp_file_local = path.join(work_dir, path.basename(inp_file))
-    INP_FILE_FILTERS[filter_func](inp_file, inp_file_local, replacements)
+    input_file_handling.INP_FILE_FILTERS[filter_func](inp_file, inp_file_local, replacements)
 
     with cwd(lwork_dir):
         save_info_in_file('hostname.txt', 'hostname', work_dir)
@@ -310,7 +252,7 @@ def add_to_fname(fname,add):
 def rerun(replacements,lworkdir,inp_file,programs,filter_func='f90nml'):
     inp_file_replace = add_to_fname(inp_file,'_rerun')
     with cwd(lworkdir):
-        INP_FILE_FILTERS[filter_func](inp_file, inp_file_replace, replacements)
+        input_file_handling.INP_FILE_FILTERS[filter_func](inp_file, inp_file_replace, replacements)
         save_info_in_file('re_hostname.txt', 'hostname')
         save_info_in_file('restarted.txt', 'date')
         run_core(programs, inp_file_replace, lworkdir)
@@ -698,7 +640,7 @@ parameters are strongly correlated"""
                     call.status[run_string]['Final replacements'] = replacements
                 call.status[run_string]['This Converged'] = this_converged
                 call.status[run_string]['Replacers'] = prevvarvalues
-                call.status[run_string]['Run no'] = call.status[run_string].get('Rerun no', 0)+1
+                call.status[run_string]['Run no'] = call.status[run_string].get('Run no', 0)+1
         import pprint
         pprint.pprint(call.status)
         if not everything_converged:

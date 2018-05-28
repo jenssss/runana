@@ -40,3 +40,7 @@ with run.print_time():
     
 with open('latest_run_dir.txt','w') as file_:
     file_.write(scratch_base)
+
+import analyse
+analyse.run_analysis(scratch_base)
+    

@@ -17,5 +17,5 @@ f = np.sin(X**5+Y**3)+X-Y
 
 I = np.trapz(np.trapz(f,Y,axis=0),x)
 
-print('Integral of x**2+y**2 from 0 to 2: ',I)
+print('Integral of sin(x**5+y**3)+x-y from 0 to 2: ',I)
 

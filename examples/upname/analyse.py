@@ -3,11 +3,12 @@ from __future__ import print_function
 from runana import analyse
 from runana import analyse_w_panda
 from runana import read_numbers
+from runana import input_file_handling
 
 def run_analysis(workdir):
     print(workdir)
     
-    dict_w_parameters = analyse.collect_from_all(workdir, read_func=analyse.read_input_files_upname)
+    dict_w_parameters = analyse.collect_from_all(workdir, read_func=input_file_handling.read_input_files_upname)
 
     analyse.dictdiff(dict_w_parameters)
     

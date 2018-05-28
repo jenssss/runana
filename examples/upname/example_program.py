@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from sys import argv
-from runana.analyse import read_upname_file
+from runana.input_file_handling import read_upname_file
 
 config = read_upname_file(argv[1])
 

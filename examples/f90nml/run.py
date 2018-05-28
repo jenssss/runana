@@ -36,7 +36,11 @@ some_iters = {('nlGroup', 'variable'): run.generate_list(
 chain_iters = some_iters
 with run.print_time():
     run.execute(programs, input_file, scratch_base, chain_iters=chain_iters, product_iters=product_iters, just_replace=just_replace)
-
     
 with open('latest_run_dir.txt','w') as file_:
     file_.write(scratch_base)
+
+import analyse
+analyse.run_analysis(scratch_base)
+
+    

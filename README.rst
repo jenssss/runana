@@ -8,6 +8,10 @@ Useful for convergence testing.
 
 Documentation: http://runana.readthedocs.org/en/latest/
 
+Usage
+=====
+
+See the examples in the source
 
 Installation
 ============
@@ -22,3 +26,7 @@ Users without install privileges can append the ``--user`` flag to
 ``setup.py``::
 
    $ python setup.py install --user
+
+
+
+   

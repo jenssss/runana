@@ -14,11 +14,11 @@ Run API
 
 .. autofunction:: runana.run.print_time
 
-.. autofunction:: runana.run.filter_inp_file_upname
+.. autofunction:: runana.input_file_handling.filter_inp_file_upname
 
-.. autofunction:: runana.run.filter_inp_file_f90nml
+.. autofunction:: runana.input_file_handling.filter_inp_file_f90nml
 
-.. autodata:: runana.run.INP_FILE_FILTERS
+.. autodata:: runana.input_file_handling.INP_FILE_FILTERS
 
 
 Extra functions

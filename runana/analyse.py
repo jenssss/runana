@@ -3,91 +3,16 @@ import os
 from os import path
 from functools import partial, wraps
 
-import f90nml
-from runana import read_numbers
+from runana.read_numbers import ignore_error
 from runana.run import cwd
+from runana.input_file_handling import read_input_files_f90nml, string_or_iterable, superset
 
 try:
     basestring          # Python 2.x
 except NameError:
     basestring = str    # Python 3.x
-
     
-def string_or_iterable(args):
-    """ Generator that assumes args is either a string or an iterable. """
-    if isinstance(args, basestring):
-        yield args
-    else:
-        for arg in args:
-            yield arg
-
-def num_str(s):
-    """ Tries to convert input to integer, then tries float, then complex. 
-If all these fails the string is returned unchanged"""
-    try:
-        return int(s)
-    except ValueError:
-        try:
-            return float(s)
-        except ValueError:
-            try:
-                return complex(s)
-            except ValueError:
-                return s
-
-def read_upname_file(filename):
-    """ Reads file in upname format
-
-    In this format the names of variables are given on a line, with the values on the following line. Each variable/name should be seperated by at least two whitespaces or a tab. Each set of names/values lines should be seperated by at least one blank line
-    """
-    with open(filename,'r') as input_file_in:
-        previous_line = []
-        data={}
-        for line in input_file_in:
-            # Break line on tab or more than two consequtive whitespaces
-            # line = split([r'\s{2,}'],line.rstrip())
-            line = line.rstrip().replace('\t','  ').split('  ')
-            line = [num_str(elem.strip()) for elem in line if elem]
-            data.update(dict(zip(previous_line,line)))
-            previous_line = line
-    return data
-
-
-def read_input_files_upname(patterns=['*.inp']):
-    """ Read the all files matching `patterns` with :func:`read_upname_file`
-
-    The data from all the files is supersetted and the resulting dict is returned"""
-    from itertools import chain
-    import glob
-    filenames = list(chain(*(glob.glob(pattern)
-                             for pattern in string_or_iterable(patterns))))
-    dicts = dict((filename,read_upname_file(filename)) for filename in filenames)
-    return superset(dicts)
-
-
-def flat_iterator(nml):
-    """Iterator that returns the adress of an element as a 2-tuple, 
-    along with the element """
-    for key, value in nml.items():
-        for inner_key, inner_value in value.items():
-            yield (key,inner_key), inner_value
-
-def read_and_flatten_namelist(filename):
-    namelist = f90nml.read(filename)
-    return dict(flat_iterator(namelist))
-
-def read_input_files_f90nml(patterns=['*.nml']):
-    """ Read the all files matching `patterns` with :func:`f90nml.read`
-
-    The namelists are flattened and supersetted, the resulting dict is returned"""
-    from itertools import chain
-    import glob
-    filenames = list(chain(*(glob.glob(pattern)
-                             for pattern in string_or_iterable(patterns))))
-    dicts = dict((filename,read_and_flatten_namelist(filename)) for filename in filenames)
-    return superset(dicts)
-
-@read_numbers.ignore_error(TypeError,[])
+@ignore_error(TypeError,[])
 def get_subdirs(a_dir):
     return [name for name in os.listdir(a_dir)
             if os.path.isdir(os.path.join(a_dir, name))]
@@ -120,7 +45,7 @@ def make_collector_function(workdir,read_func,*args,**kwargs):
 directory that is the join of `workdir` and the argument to the function"""
     return read_from_dir(roll_in_args(read_func,*args,**kwargs),workdir)
 
-@read_numbers.ignore_error(TypeError)
+@ignore_error(TypeError)
 def collect(dir_,read_func):
     """ Switches to `dir_` and runs `read_func`"""
     with cwd(dir_):
@@ -136,7 +61,7 @@ def compose2(f, g):
     return fg
 
     
-@read_numbers.ignore_error(TypeError)
+@ignore_error(TypeError)
 def join_dirs(subdirs,workdir):
     dir_ = os.path.join(workdir,
                         *tuple(string_or_iterable(subdirs)))
@@ -213,16 +138,8 @@ class SetList(list):
     
 
 
-# The following two functions were inspired by nmltab
-def superset(alldicts):
-    """ Returns dict containing all keys from the dicts contained in `alldicts`
 
-    :param dict alldicts: a dictionary containing dictionaries"""
-    superdict = {}
-    for dict_ in alldicts.values():
-        superdict.update(dict_)
-    return superdict
-
+# This function was inspired by nmltab
 def dictdiff(alldicts):
     """ In-place removes all key:value pairs that are shared across all dicts 
 
