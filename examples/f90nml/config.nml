@@ -6,3 +6,13 @@
   other_variable = -2.0
   third_variable = 'a'
 &end
+
+&nlIntegrate
+  npoints = 10
+&end
+
+
+&nlIntegrate2
+  npointsx = 10
+  npointsy = 10
+&end

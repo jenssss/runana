@@ -532,9 +532,19 @@ def print_time():
 
 
 def rel_err_rel_var(O1, O2, x1, x2):
+    """ Estimate of relative error `abs(x2/(x2-x1)*(O1-O2)/O2)` """
     return abs(x2/(x2-x1)*(O1-O2)/O2)
 
 class ConvCrit(object):
+    """ Contains information on how to check for convergence.
+
+    :parameter func data_read: Function which will be executed in the directory in which the programs was run. It should return the observable in terms of which convergence is sought
+
+    :parameter float eps: Desired precision 
+
+    :parameter func conv_funv: Function that calculates convergence criterion. It should take 4 arguments, `f(O1,O2,x1,x2)`, where `x1` and `x2` are the values of the numerical parameter at the current and previous calculation and `O1` and `O2` are the corresponding observable values
+
+    """
     def __init__(self, data_read, eps = 1.0e-3, conv_func = rel_err_rel_var, itermax=10, common_start=False):
         self.eps = eps
         self.conv_func = conv_func
@@ -560,7 +570,7 @@ def auto_converge_var(var_name, var, replacements, dirs, inp_file, programs, con
             # print(prevdirID,varvalue_prev,varvalue,data_read(path.join(dirs.local_scratch_base, dirID))
             with cwd(path.join(dirs.local_scratch_base, prevdirID)):
                 O1 = data_read()
-            with cwd(path.join(dirs.local_scratch_base, ID)):
+            with cwd(path.join(dirs.local_scratch_base, dirID)):
                 O2 = data_read()
             yield_diff = conv_crit.conv_func(O1,O2,
                                              float(varvalue_prev),
@@ -574,7 +584,7 @@ def auto_converge_var(var_name, var, replacements, dirs, inp_file, programs, con
     return {'VarValue':varvalue, 'PrevVarValue':varvalue_prev, 'iteration':iteration+1}
 
 
-def auto_conv(chain_iters,replacers, dirs, inp_file, programs, conv_crit, auto_converge_var):
+def auto_conv_sub(chain_iters,replacers, dirs, inp_file, programs, conv_crit, auto_converge_var):
     results={}
     for chain_iter in chain_iters:
         results[chain_iter] = auto_converge_var(chain_iter, chain_iters[chain_iter],
@@ -582,20 +592,35 @@ def auto_conv(chain_iters,replacers, dirs, inp_file, programs, conv_crit, auto_c
     return results
 
 
-def conv_check(programs, inp_file, dirs, conv_crit, chain_iters,
+def auto_conv(programs, inp_file, dirs, conv_crit, chain_iters,
                product_iters={}, just_replace={},
-               auto_converge_var=auto_converge_var, auto_conv=auto_conv):
+               auto_converge_var=auto_converge_var, auto_conv_sub=auto_conv_sub):
+    """ Run programs until converged or chain_iters is exhausted.
+
+    :param list programs: List of strings with names of programs. Should contain absolute paths. Could alternately contain functions
+
+    :param str input_file: Input file
+
+    :param runana.run.Dirs dirs: Base directory in which programs will be run
+    :type dirs: str or runana.run.Dirs
+
+    :param runana.run.ConvCrit conv_crit: Object specifying type of convergence
+
+    :param dict chain_iters: Entries of the form {'Name of parameter':[*values to replace with*]}
+
+    :param dict product_iters: Like `chain_iters`, but runs all combinations
+
+    :param bool use_stdin: send in the content of the filtered input file through stdin rather passing the name of the input file as the first command line argument
+    """
+    # :param dict just_replace: Entries of the form {'Name of parameter':*value to replace with*}
+    # :param str filter_func: Which filter function to use. Options are listed as keys in the INPUT_FILE_FILTERS dictionary
     dirs = check_dirs(dirs)
     inp_file = path.join(getcwd(), inp_file)
     results={}
     for replacers in replace_iter_gen(product_iters=product_iters,
                                       just_replace=just_replace):
-        # results_inner={}
-        # for chain_iter in chain_iters:
-        #     results_inner[chain_iter] = auto_converge_var(chain_iter, chain_iters[chain_iter],
-        #                                             replacers, dirs, inp_file, programs, conv_crit)
         run_string = make_run_string(replacers)
-        results[run_string] = auto_conv(chain_iters,replacers, dirs, inp_file, programs,
+        results[run_string] = auto_conv_sub(chain_iters,replacers, dirs, inp_file, programs,
                                         conv_crit, auto_converge_var)
     return results
 
@@ -647,40 +672,40 @@ def static_vars(**kwargs):
         return func
     return decorate
 
-def recursive_rerun_wrap(do=False):
-    def decorate(fun):
-        @wraps(fun)
-        @static_vars(status={})
-        def call(*args, **kwargs):
-            converged_parameters = fun(*args, **kwargs)
-            if do:
-                everything_converged=True
-                for run_string in converged_parameters:
-                    replacements={}
-                    prevvarvalues={}
-                    call.status[run_string]=call.status.get(run_string, {})
-                    this_converged = call.status[run_string].get('This Converged', False)
-                    if not this_converged:
-                        this_converged = True
-                        for var_name in converged_parameters[run_string]:
-                            replacements[var_name]=converged_parameters[run_string][var_name]['VarValue']
-                            if converged_parameters[run_string][var_name]['iteration']>2:
-                                this_converged = False
-                                everything_converged = False
-                            prevvarvalues[var_name]=converged_parameters[run_string][var_name]['PrevVarValue']
-                        if this_converged:
-                            call.status[run_string]['Final replacements'] = replacements
-                        call.status[run_string]['This Converged'] = this_converged
-                        call.status[run_string]['Replacers'] = prevvarvalues
-                        call.status[run_string]['Rerun no'] = call.status[run_string].get('Rerun no', 0)+1
-                import pprint
-                pprint.pprint(call.status)
-                if not everything_converged:
-                    auto_conv_handle = inject_status(call.status)(auto_conv)
-                    kwargs.update({'auto_conv': auto_conv_handle})
-                    converged_parameters=call(*args, **kwargs)
-                else:
-                    converged_parameters=call.status
-            return converged_parameters
-        return call
-    return decorate
+def auto_conv_rerun(fun):
+    """ Decorator for rerunning :func:`auto_conv`, until convergence is achieved in 
+the first two calculations for each parameter. This is useful for cases where 
+parameters are strongly correlated"""
+    @wraps(fun)
+    @static_vars(status={})
+    def call(*args, **kwargs):
+        converged_parameters = fun(*args, **kwargs)
+        everything_converged=True
+        for run_string in converged_parameters:
+            replacements={}
+            prevvarvalues={}
+            call.status[run_string]=call.status.get(run_string, {})
+            this_converged = call.status[run_string].get('This Converged', False)
+            if not this_converged:
+                this_converged = True
+                for var_name in converged_parameters[run_string]:
+                    replacements[var_name]=converged_parameters[run_string][var_name]['VarValue']
+                    if converged_parameters[run_string][var_name]['iteration']>2:
+                        this_converged = False
+                        everything_converged = False
+                    prevvarvalues[var_name]=converged_parameters[run_string][var_name]['PrevVarValue']
+                if this_converged:
+                    call.status[run_string]['Final replacements'] = replacements
+                call.status[run_string]['This Converged'] = this_converged
+                call.status[run_string]['Replacers'] = prevvarvalues
+                call.status[run_string]['Run no'] = call.status[run_string].get('Rerun no', 0)+1
+        import pprint
+        pprint.pprint(call.status)
+        if not everything_converged:
+            auto_conv_handle = inject_status(call.status)(auto_conv_sub)
+            kwargs.update({'auto_conv_sub': auto_conv_handle})
+            converged_parameters=call(*args, **kwargs)
+        else:
+            converged_parameters=call.status
+        return converged_parameters
+    return call

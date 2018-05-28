@@ -47,12 +47,12 @@ def lines_in_file_iterator(file_handle,pattern=''):
             yield line
 
 def words_in_file_iterator(file_handle,pattern=''):
-    for line in lines_in_file_iterator(file_handle,pattern=''):
+    for line in lines_in_file_iterator(file_handle,pattern=pattern):
         for word in line.split():
             yield word
 
 def numbers_in_file_iterator(file_handle,pattern=''):
-    for word in words_in_file_iterator(file_handle,pattern=''):
+    for word in words_in_file_iterator(file_handle,pattern=pattern):
         try:
             number=float(word)
             yield number

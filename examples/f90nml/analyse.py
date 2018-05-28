@@ -29,7 +29,7 @@ def run_analysis(workdir):
     param_panda = panda_data.applymap(analyse_w_panda.
                                       return_dict_element(dict_w_parameters))
 
-    analyse_w_panda.plot_panda(panda_var,'plot_test.pdf',
+    analyse_w_panda.plot(panda_var,'plot_test.pdf',
                              logy=False, param_panda=param_panda)
 
             

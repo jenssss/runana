@@ -27,3 +27,17 @@ Extra functions
 .. autofunction:: runana.run.common_start
 		  
 		  
+Automated convergence testing
+-----------------------------
+
+.. autoclass:: runana.run.ConvCrit
+
+.. autofunction:: runana.run.rel_err_rel_var
+
+.. autofunction:: runana.run.auto_conv
+		  
+.. autofunction:: runana.run.auto_conv_rerun
+
+		  
+		  
+		  
