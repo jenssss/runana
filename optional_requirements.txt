@@ -1,0 +1,4 @@
+pandas
+matplotlib
+numpy
+f90nml

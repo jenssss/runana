@@ -91,7 +91,6 @@ def plot(plotdata, outfile, logx=False, logy=False, param_panda=None):
                     ymin = np.power(10,np.floor(np.log10(ymin)))
                     ymax = np.power(10,np.ceil(np.log10(ymax)))
                     ax.set_ylim([ymin,ymax])
-
                 if param_panda is not None:
                     param_series = param_panda.loc[(numparam)]
                     string = ' '.join(extract_interesting_vars(param_series,numparam))
@@ -109,7 +108,7 @@ def calc_convergence(data_in):
         RelErrorEstimate = RelErrorEstimate.apply(np.abs)
         RelErrorEstimate = pd.Series(RelErrorEstimate.values,data[data_in.numparamval])
         for numparamval in data[data_in.numparamval]:
-            data_out.loc[(numparam,numparamval),str(column)+'reldiff'] = RelErrorEstimate[numparamval]
+            data_out.loc[(numparam,numparamval),str(column)+'_reldiff'] = RelErrorEstimate[numparamval]
     return data_out
 
 

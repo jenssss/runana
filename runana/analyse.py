@@ -88,7 +88,7 @@ class Seqs(dict):
             del keys[0]
             for key,indices in get_indices_dict(index,param_dicts,keys).items():
                 seqs_list = self.get(key,[])
-                if all( not indices_eq(param_dicts,indices.values(),indices_seqs.values()) for indices_seqs in seqs_list):
+                if all( not indices_sub(param_dicts,indices.values(),indices_seqs.values()) for indices_seqs in seqs_list):
                     self[key] = seqs_list + [indices]
                     
     def iterator(self):
@@ -122,29 +122,18 @@ def dict_eq_ignore(dict1,dict2,ignore_keys=[]):
 def copy_w_ignore_keys(dict_,ignore_keys=[]):
     return dict((key,value) for key, value in dict_.items() if key not in ignore_keys)
 
-def indices_eq(dicts,indices1,indices2):
-    dict_list1 = SetList(dicts[indx] for indx in indices1)
-    dict_list2 = SetList(dicts[indx] for indx in indices2)
-    return dict_list1.lset_sub_or_sub(dict_list2)
+def indices_sub(dicts,indices1,indices2):
+    dict_list1 = list(dicts[indx] for indx in indices1)
+    dict_list2 = list(dicts[indx] for indx in indices2)
+    return issubset(dict_list2,dict_list1)
 
-class SetList(list):
-    """List with some set operations """
-    def issubset(self,list2):
-        # Checks if self is subset of list2
-        list3 = []
-        for elem in list2:
-            if elem in self:
-                list3.append(elem)
-        return list2 == list3
-
-    def lset_eq(self,list2):
-        return self.issubset(list2) and list2.issubset(self)
-
-    def lset_sub_or_sub(self,list2):
-        return self.issubset(list2) or list2.issubset(self)
-
-    
-
+def issubset(list1,list2):
+    """ Checks if list1 is subset of list2 """
+    list3 = []
+    for elem in list2:
+        if elem in list1:
+            list3.append(elem)
+    return list2 == list3
 
 
 # This function was inspired by nmltab
