@@ -12,6 +12,8 @@ def run_analysis(workdir):
     analyse.dictdiff(dict_w_parameters)
     
     seqs = analyse.Seqs(dict_w_parameters)
+    import pprint
+    pprint.pprint(seqs)
             
     panda_data = analyse_w_panda.SeqsDataFrame()
     panda_data.import_from_seq(seqs)

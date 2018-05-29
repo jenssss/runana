@@ -83,45 +83,49 @@ class Seqs(dict):
     :param dict param_dicts: Dictionary containing dictionaries of parameters, in the form returned from e.g. :func:`collect_from_all`
     """
     def __init__(self,param_dicts):
-        for index,param_dict in param_dicts.items():
-            indices_dict = {}
-            for index_compare,param_dict_compare in param_dicts.items():
-                for key,value,value_compare in get_index_for_all_but_one_changed(param_dict,param_dict_compare):
-                    if not key in indices_dict:
-                        indices_dict[key] = {value:index}
-                    indices_dict[key][value_compare] = index_compare
-
-            for key,indices in indices_dict.items():
+        keys = list(param_dicts.keys())
+        for index in list(keys):
+            del keys[0]
+            for key,indices in get_indices_dict(index,param_dicts,keys).items():
                 seqs_list = self.get(key,[])
                 if all( not indices_eq(param_dicts,indices.values(),indices_seqs.values()) for indices_seqs in seqs_list):
                     self[key] = seqs_list + [indices]
-
+                    
     def iterator(self):
         for key in self:
             for indx,seq_list in enumerate(self[key]):
                 yield key,indx,seq_list
 
-    
+def get_indices_dict(index,param_dicts,keys):
+    indices_dict = {}
+    for index_compare in keys:
+        for key,value,value_compare in get_index_for_all_but_one_changed(param_dicts[index],param_dicts[index_compare]):
+            if key not in indices_dict:
+                indices_dict[key] = {value:index}
+            indices_dict[key][value_compare] = index_compare
+    return indices_dict
+   
 def get_index_for_all_but_one_changed(nl1,nl2):
-    for key, value in nl1.items(): 
-        value2 = nl2[key]
-        if value != value2:
-            if namelists_eq(nl1,nl2,[key]): 
-                yield key, value, value2
+    for key, value in nl1.items():
+        try:
+            value2 = nl2[key]
+            if value != value2:
+                if dict_eq_ignore(nl1,nl2,[key]): 
+                    yield key, value, value2
+        except KeyError:
+            pass
 
-def namelists_eq(nl1,nl2,ignore_keys=[]):
-    nl1_flat = copy_w_ignore_keys(nl1,ignore_keys)
-    nl2_flat = copy_w_ignore_keys(nl2,ignore_keys)
-    return nl1_flat == nl2_flat
-def copy_w_ignore_keys(nl,ignore_keys=[]):
-    return dict((key,value) for key, value in nl.items() if key not in ignore_keys)
-            
+def dict_eq_ignore(dict1,dict2,ignore_keys=[]):
+    dict1_flat = copy_w_ignore_keys(dict1,ignore_keys)
+    dict2_flat = copy_w_ignore_keys(dict2,ignore_keys)
+    return dict1_flat == dict2_flat
+def copy_w_ignore_keys(dict_,ignore_keys=[]):
+    return dict((key,value) for key, value in dict_.items() if key not in ignore_keys)
 
-def indices_eq(namelists,indices1,indices2):
-    namelist_list1 = SetList(namelists[indx] for indx in indices1)
-    namelist_list2 = SetList(namelists[indx] for indx in indices2)
-    return namelist_list1.lset_eq(namelist_list2)
-
+def indices_eq(dicts,indices1,indices2):
+    dict_list1 = SetList(dicts[indx] for indx in indices1)
+    dict_list2 = SetList(dicts[indx] for indx in indices2)
+    return dict_list1.lset_sub_or_sub(dict_list2)
 
 class SetList(list):
     """List with some set operations """
@@ -135,6 +139,10 @@ class SetList(list):
 
     def lset_eq(self,list2):
         return self.issubset(list2) and list2.issubset(self)
+
+    def lset_sub_or_sub(self,list2):
+        return self.issubset(list2) or list2.issubset(self)
+
     
 
 
