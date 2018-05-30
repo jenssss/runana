@@ -96,7 +96,17 @@ def flat_iterator(nml):
 def read_and_flatten_namelist(filename):
     import f90nml
     namelist = f90nml.read(filename)
-    return dict(flat_iterator(namelist))
+    dict_ = dict(flat_iterator(namelist))
+    return dict_
+    # dict2 = {}
+    # for key,val in dict_.items():
+    #     if isinstance(val,list):
+    #         for idx,elem in enumerate(val):
+    #             newkey = (key[0],str(key[1])+'_'+str(idx))
+    #             dict2[newkey] = elem
+    #     else:
+    #         dict2[key] = val
+    # return dict2
 
 def read_input_files_f90nml(patterns=['*.nml']):
     """ Read the all files matching `patterns` with :func:`f90nml.read`

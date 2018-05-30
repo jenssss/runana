@@ -40,7 +40,7 @@ class single_fig_manager(object):
 
 
 class single_ax_manager(single_fig_manager):
-    """ Create an axis a single subplot of a `Figure` object.
+    """ Create an axis with a single subplot in a `Figure` object.
 
     Subclassed from :class:`single_fig_manager`, and all the arguments are the same
     """

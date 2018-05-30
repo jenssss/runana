@@ -56,7 +56,7 @@ def roll_in_args(read_func,*args,**kwargs):
     read_func_subdir = partial(collect,read_func=read_func_no_args)
     return read_func_subdir
 def compose2(f, g):
-    @wraps(f)
+    # @wraps(f)
     def fg(*a, **kw): return f(g(*a, **kw))
     return fg
 
@@ -88,7 +88,8 @@ class Seqs(dict):
             del keys[0]
             for key,indices in get_indices_dict(index,param_dicts,keys).items():
                 seqs_list = self.get(key,[])
-                if all( not indices_sub(param_dicts,indices.values(),indices_seqs.values()) for indices_seqs in seqs_list):
+                if all( not indices_sub(param_dicts,indices.values(),indices_seqs.values())
+                        for indices_seqs in seqs_list):
                     self[key] = seqs_list + [indices]
                     
     def iterator(self):
@@ -96,13 +97,21 @@ class Seqs(dict):
             for indx,seq_list in enumerate(self[key]):
                 yield key,indx,seq_list
 
+def catch_list_values(value,index):
+    try:
+        ret = {value:index}
+    except TypeError:
+        ret = {tuple(value):index}
+    return ret
+
+                
 def get_indices_dict(index,param_dicts,keys):
     indices_dict = {}
     for index_compare in keys:
         for key,value,value_compare in get_index_for_all_but_one_changed(param_dicts[index],param_dicts[index_compare]):
             if key not in indices_dict:
-                indices_dict[key] = {value:index}
-            indices_dict[key][value_compare] = index_compare
+                indices_dict[key] = catch_list_values(value,index)
+            indices_dict[key].update(catch_list_values(value_compare,index_compare))
     return indices_dict
    
 def get_index_for_all_but_one_changed(nl1,nl2):

@@ -38,9 +38,11 @@ This module requires the :py:mod:`pandas` package
 
 .. autoclass:: runana.analyse_w_panda.SeqsDataFrame
 
-.. autofunction:: runana.analyse_w_panda.calc_convergence
+.. automethod:: runana.analyse_w_panda.SeqsDataFrame.import_from_seq
+	       
+.. automethod:: runana.analyse_w_panda.SeqsDataFrame.calc_convergence
 
-.. autofunction:: runana.analyse_w_panda.plot
+.. automethod:: runana.analyse_w_panda.SeqsDataFrame.plot
 
 .. autofunction:: runana.analyse_w_panda.return_dict_element
 
