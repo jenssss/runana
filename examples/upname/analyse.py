@@ -1,21 +1,20 @@
 from __future__ import print_function
 
 from runana import analyse
-from runana import analyse_w_panda
+from runana import analyse_pandas
 from runana import read_numbers
 from runana import input_file_handling
 
 def run_analysis(workdir):
     print(workdir)
     
-    dict_w_parameters = analyse.collect_from_all(workdir, read_func=input_file_handling.read_input_files_upname)
+    dict_w_parameters = analyse.read_input_files(workdir, read_func=input_file_handling.read_input_files_upname)
 
-    analyse.dictdiff(dict_w_parameters)
+    dict_w_parameters.diff()
     
     seqs = analyse.Seqs(dict_w_parameters)
             
-    panda_data = analyse_w_panda.SeqsDataFrame()
-    panda_data.import_from_seq(seqs)
+    panda_data = analyse_pandas.SeqsDataFrame().import_from_seq(seqs)
 
     read_var = analyse.make_collector_function(workdir,
                                                read_numbers.read_number_from_file,
@@ -24,14 +23,14 @@ def run_analysis(workdir):
     panda_var = panda_data.applymap(read_var)
     print(panda_var)
 
-    # panda_conv = analyse_w_panda.calc_convergence(panda_var)
+    # panda_conv = analyse_pandas.calc_convergence(panda_var)
     # print(panda_conv)
 
 
-    param_panda = panda_data.applymap(analyse_w_panda.
+    param_panda = panda_data.applymap(analyse_pandas.
                                       return_dict_element(dict_w_parameters))
 
-    analyse_w_panda.plot(panda_var,'plot_test.pdf',
+    panda_var.plot_('plot_test.pdf',
                              logy=False, param_panda=param_panda)
 
 

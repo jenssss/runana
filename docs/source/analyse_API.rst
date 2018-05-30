@@ -8,8 +8,14 @@ Get data
 Get parameters
 """"""""""""""
 
-.. autofunction:: runana.analyse.collect_from_all
-		  
+.. autofunction:: runana.analyse.read_input_files
+
+.. autoclass:: runana.analyse.ParamDict
+
+.. automethod:: runana.analyse.ParamDict.diff
+
+.. automethod:: runana.analyse.ParamDict.unpack_list_values
+	       
 .. autoclass:: runana.analyse.Seqs
 
 .. autofunction:: runana.input_file_handling.read_input_files_f90nml
@@ -18,7 +24,6 @@ Get parameters
 
 .. autofunction:: runana.input_file_handling.read_upname_file
 		  
-.. autofunction:: runana.analyse.unpack_list_values
 
 Get other stuff
 """""""""""""""
@@ -33,20 +38,20 @@ Get other stuff
 		  
 		  
 
-Analyse with panda API
-----------------------
+Analyse with pandas API
+-----------------------
 
 This module requires the :py:mod:`pandas` package
 
-.. autoclass:: runana.analyse_w_panda.SeqsDataFrame
+.. autoclass:: runana.analyse_pandas.SeqsDataFrame
 
-.. automethod:: runana.analyse_w_panda.SeqsDataFrame.import_from_seq
+.. automethod:: runana.analyse_pandas.SeqsDataFrame.import_from_seq
 	       
-.. automethod:: runana.analyse_w_panda.SeqsDataFrame.calc_convergence
+.. automethod:: runana.analyse_pandas.SeqsDataFrame.calc_convergence
 
-.. automethod:: runana.analyse_w_panda.SeqsDataFrame.plot_
+.. automethod:: runana.analyse_pandas.SeqsDataFrame.plot_
 
-.. autofunction:: runana.analyse_w_panda.return_dict_element
+.. autofunction:: runana.analyse_pandas.return_dict_element
 
 		  
 		  

@@ -30,20 +30,23 @@ class SeqsDataFrame(pd.DataFrame):
             if not dat.empty:
                 yield (numparam,column),dat
 
-    def import_from_seq(self,seqs):
+    def import_from_seq(self,seqs,inplace=False):
         """Converts the seqs object into a SeqsDataFrame"""
+        seqsdf = self if inplace else self.copy()
         multiindx = pd.MultiIndex(levels = [[], []],labels = [[], []],
-                                  names = [self.numparam,self.numparamval])
-        self.set_index(multiindx,inplace=True)
+                                  names = [seqsdf.numparam,seqsdf.numparamval])
+        seqsdf.set_index(multiindx,inplace=True)
         whatever_scalar = 0.1
         for key,indx,seq_list in seqs.iterator():
             for numparamval in sorted(seq_list,key=try_to_float):
                 run_index = seq_list[numparamval]
                 numparamval = try_to_float(numparamval)
                 numparam = is_it_tuple(key)
-                self.loc[(numparam,numparamval),indx] = whatever_scalar
-                self.loc[(numparam,numparamval),indx] = run_index
-
+                seqsdf.loc[(numparam,numparamval),indx] = whatever_scalar
+                seqsdf.loc[(numparam,numparamval),indx] = run_index
+        if not inplace:
+            return seqsdf
+                
 
     def calc_reldiff(self):
         """ Calculate relative difference of values and numerical parameter values

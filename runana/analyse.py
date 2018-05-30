@@ -30,40 +30,50 @@ def collecting_loop_recursive(dir_,read_func):
                                                        read_func):
                 yield (subdir,)+dirs,vals
 
-def unpack_list_values(param_dicts):
-    """ Takes any numerical parameter value in `param_dicts` that is a list and
-    packs it into individual slots with name numparam_name + idx
-
-    Returns a copy, does not modify the input
-    """
-    new_param_dict = {}
-    for key,param_dict in param_dicts.items():
-        new_param_dict[key] = spread_out_lists(param_dict)
-    return new_param_dict
-
-def spread_out_lists(dict_):
-    newdict = {}
-    for key,val in dict_.items():
-        if isinstance(val,list):
-            for idx,elem in enumerate(val):
-                newkey = (key[0],str(key[1])+'_'+str(idx+1))
-                newdict[newkey] = elem
-        else:
-            newdict[key] = val
-    return newdict
-
-    
-                
-def collect_from_all(workdir,read_func=read_input_files_f90nml):
-    """ Recursively searches through all subdirectories of `workdir`. `read_func` is run in any directory containing a file named 'hostname.txt', and the result is stored in a dict, with the path in tuple-form as key. This dict is returned. 
+def read_input_files(workdir,read_func=read_input_files_f90nml):
+    """ Recursively searches through all subdirectories of `workdir`. `read_func` is run in any directory containing a file named 'hostname.txt', and the result is stored in a :class:`ParamDict`, with the path in tuple-form as key. This :class:`ParamDict` is returned. 
 
     Subdirectories of a directory with a 'hostname.txt' file are not searched.
     """
-    data={}
-    for index,result in collecting_loop_recursive(workdir,read_func):
-        data[index] = result
-    return data
+    paramdict = ParamDict()
+    paramdict.read(workdir,read_func=read_func)
+    return paramdict
+                
+class ParamDict(dict):
+    """ Dictionary that holds dictionaries of parameters """
+    def read(self,workdir,read_func=read_input_files_f90nml):
+        for index,result in collecting_loop_recursive(workdir,read_func):
+            self[index] = result
 
+    def diff(self):
+        """ Call :func:`dictdiff` on `ParamDict` object """
+        dictdiff(self)
+
+    def unpack_list_values(self):
+        """ Takes any numerical parameter value in `ParamDict` object that is a list and
+        packs it into individual slots with name numparam_name + idx
+
+        Works in-place
+        """
+        for key,param_dict in self.items():
+            spread_out_lists(param_dict)
+
+def spread_out_lists(dict_):
+    newdict = {}
+    delete_keys = []
+    for key,val in dict_.items():
+        if isinstance(val,list):
+            delete_keys += [key]
+            for idx,elem in enumerate(val):
+                if isinstance(key,tuple):
+                    newkey = (key[0],str(key[1])+'_'+str(idx+1))
+                else:
+                    newkey = str(key)+'_'+str(idx+1)
+                newdict[newkey] = elem
+    dict_.update(newdict)
+    for key in delete_keys:
+        del dict_[key]
+        
 def make_collector_function(workdir,read_func,*args,**kwargs):
     """ Returns a function that runs `read_func(*args,**kwargs)` in the 
 directory that is the join of `workdir` and the argument to the function"""
@@ -106,7 +116,8 @@ class Seqs(dict):
     
     :param dict param_dicts: Dictionary containing dictionaries of parameters, in the form returned from e.g. :func:`collect_from_all`
     """
-    def __init__(self,param_dicts):
+    def __init__(self,param_dicts,*args,**kwargs):
+        super(Seqs, self).__init__(*args,**kwargs)
         keys = list(param_dicts.keys())
         for index in list(keys):
             del keys[0]
