@@ -41,7 +41,6 @@ class SeqsDataFrame(pd.DataFrame):
                 run_index = seq_list[numparamval]
                 numparamval = try_to_float(numparamval)
                 numparam = is_it_tuple(key)
-                print((numparam,numparamval),indx)
                 self.loc[(numparam,numparamval),indx] = whatever_scalar
                 self.loc[(numparam,numparamval),indx] = run_index
 
@@ -95,7 +94,7 @@ class SeqsDataFrame(pd.DataFrame):
             
 
 
-    def plot(self, outfile, logx=False, logy=False, param_panda=None):
+    def plot_(self, outfile, logx=False, logy=False, grid=False, param_panda=None):
         """ Requires :mod:`numpy` and :mod:`matplotlib`"""
         from runana import matplotlib_managers as mplm
         import numpy as np
@@ -105,6 +104,8 @@ class SeqsDataFrame(pd.DataFrame):
                     data.plot(ax=ax,alpha=0.8,marker='o')
                     ax.set_xlabel(numparam)
                     ax.legend(loc='best')
+                    if grid:
+                        ax.grid()
                     if logx:
                         ax.set_xscale('log')
                     if logy:
@@ -114,7 +115,8 @@ class SeqsDataFrame(pd.DataFrame):
                         ymax = np.nanmax(data.values)
                         ymin = np.power(10,np.floor(np.log10(ymin)))
                         ymax = np.power(10,np.ceil(np.log10(ymax)))
-                        ax.set_ylim([ymin,ymax])
+                        if np.isfinite(ymin) and np.isfinite(ymax):
+                            ax.set_ylim([ymin,ymax])
                     if param_panda is not None:
                         param_series = param_panda.loc[(numparam)]
                         string = ' '.join(extract_interesting_vars(param_series,numparam))

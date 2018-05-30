@@ -30,6 +30,30 @@ def collecting_loop_recursive(dir_,read_func):
                                                        read_func):
                 yield (subdir,)+dirs,vals
 
+def unpack_list_values(param_dicts):
+    """ Takes any numerical parameter value in `param_dicts` that is a list and
+    packs it into individual slots with name numparam_name + idx
+
+    Returns a copy, does not modify the input
+    """
+    new_param_dict = {}
+    for key,param_dict in param_dicts.items():
+        new_param_dict[key] = spread_out_lists(param_dict)
+    return new_param_dict
+
+def spread_out_lists(dict_):
+    newdict = {}
+    for key,val in dict_.items():
+        if isinstance(val,list):
+            for idx,elem in enumerate(val):
+                newkey = (key[0],str(key[1])+'_'+str(idx+1))
+                newdict[newkey] = elem
+        else:
+            newdict[key] = val
+    return newdict
+
+    
+                
 def collect_from_all(workdir,read_func=read_input_files_f90nml):
     """ Recursively searches through all subdirectories of `workdir`. `read_func` is run in any directory containing a file named 'hostname.txt', and the result is stored in a dict, with the path in tuple-form as key. This dict is returned. 
 

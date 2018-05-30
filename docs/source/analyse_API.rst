@@ -16,7 +16,9 @@ Get parameters
 
 .. autofunction:: runana.input_file_handling.read_input_files_upname
 
-.. autofunction:: runana.input_file_handling.read_upname_file  
+.. autofunction:: runana.input_file_handling.read_upname_file
+		  
+.. autofunction:: runana.analyse.unpack_list_values
 
 Get other stuff
 """""""""""""""
@@ -42,7 +44,7 @@ This module requires the :py:mod:`pandas` package
 	       
 .. automethod:: runana.analyse_w_panda.SeqsDataFrame.calc_convergence
 
-.. automethod:: runana.analyse_w_panda.SeqsDataFrame.plot
+.. automethod:: runana.analyse_w_panda.SeqsDataFrame.plot_
 
 .. autofunction:: runana.analyse_w_panda.return_dict_element
 
@@ -57,6 +59,11 @@ Read numbers API
 		  
 .. autofunction:: runana.read_numbers.read_column_from_file
 
+.. autofunction:: runana.read_numbers.read_file_one_block
+		  
+.. autofunction:: runana.read_numbers.read_file_sev_blocks
+
+		  
 		  
 Matplotlib managers
 -------------------
