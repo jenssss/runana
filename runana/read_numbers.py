@@ -68,8 +68,8 @@ def read_file_sev_blocks(filename):
     try:
         with open(filename,'r') as fil:
             blocks = [[[float(element) for element in line.split()]
-                       for line in block.split('\n')]
-                      for block in split(['\n \n','\n\n'],fil.read())[:-1]]
+                       for line in block.split('\n') if len(line)>0]
+                      for block in split(['\n \n','\n\n'],fil.read()) if len(block)>0]
     except IOError:
         blocks = None
     return blocks
@@ -88,8 +88,8 @@ def read_file_sev_blocks_c(filename):
     try:
         with open(filename,'r') as fil:
             blocks = [[[num_c(element) for element in line.split()]
-                       for line in block.split('\n')]
-                      for block in split(['\n \n','\n\n'],fil.read())[:-1]]
+                       for line in block.split('\n') if len(line)>0]
+                      for block in split(['\n \n','\n\n'],fil.read()) if len(block)>0]
             print(blocks)
     except IOError:
         blocks = None
@@ -114,14 +114,14 @@ def num(s):
 def read_file_one_block(filename):
     with open(filename,'r') as fil:
         block = [[num(element) for element in line.split()]
-                 for line in fil.read().split('\n')[:-1]]
+                 for line in fil.read().split('\n') if len(line)>0]
     return block
 
 
 def read_file_one_block_c(filename):
     with open(filename,'r') as fil:
         block = [[num_c(element) for element in line.split()]
-                 for line in fil.read().split('\n')[:-1]]
+                 for line in fil.read().split('\n') if len(line)>0]
     return block
 
 
