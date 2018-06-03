@@ -1,27 +1,28 @@
 #!/usr/bin/python
 from __future__ import print_function
 
-import os
-from os import path,getcwd,listdir,chdir,makedirs
+from os import path, getcwd, listdir, chdir, makedirs
 from subprocess import call
 from io import FileIO
 from glob import glob
 from functools import wraps
 from contextlib import contextmanager
 from runana import input_file_handling
+from operator import add, mul
+
+try:
+    from operator import div
+except ImportError:
+    from operator import truediv as div
 
 try:
     basestring          # Python 2.x
 except NameError:
     basestring = str    # Python 3.x
 
-from operator import add,mul
-try:
-    from operator import div
-except ImportError:
-    from operator import truediv as div
 
-OPERATIONS = {'add':add,'mul':mul,'div':div}
+OPERATIONS = {'add': add, 'mul': mul, 'div': div}
+
 
 @contextmanager
 def cwd(path):
@@ -33,27 +34,30 @@ def cwd(path):
     finally:
         chdir(oldpwd)
 
+
 def generate_seq(start, incr, nvalues=0, incr_func=add):
     """Iterator that returns a sequence of numbers
-    
+
     :param incr_func: function used to increment the return value. Can be one of the strings 'add', 'mul' or 'div'
     :type incr_func: func or str
     """
-    if isinstance(incr_func,basestring):
+    if isinstance(incr_func, basestring):
         incr_func = OPERATIONS[incr_func]
     value = start
     yield value
     for i in range(1, nvalues):
         value = incr_func(value, incr)
         yield value
-        
-def generate_list(*args,**kwargs):
+
+
+def generate_list(*args, **kwargs):
     """Wrap of generate_seq that returns a list instead of an iterator"""
-    return list(generate_seq(*args,**kwargs))
-        
+    return list(generate_seq(*args, **kwargs))
+
+
 class Dirs(object):
     """Container class for names of directories
-        
+
     :param str scratch_base: Directory prefix
     :param str local_scratch_base: Prefix for directory in which programs are run. If `None` then set to `scratch_base`
     :param list copy_2_scratch: List of strings that are globbed and copied from the local scratch directory to scratch directory
@@ -67,20 +71,25 @@ class Dirs(object):
         self.copy_2_scratch = copy_2_scratch
         makedir(self.scratch_base)
 
+
 def makedir(dir_):
-    if not path.exists(dir_): makedirs(dir_)
+    if not path.exists(dir_):
+        makedirs(dir_)
+
 
 class OpenWithNone(FileIO):
     def __init__(self, file_string, *args, **kwargs):
         self.file_string = file_string
         if file_string:
             super(OpenWithNone, self).__init__(file_string, *args, **kwargs)
+
     def __enter__(self):
         handle = None
         if self.file_string:
             handle = super(OpenWithNone, self).__enter__()
         self.fd = handle
         return self.fd
+
     def __exit__(self, type, value, traceback):
         if self.fd:
             super(OpenWithNone, self).__exit__()
@@ -93,12 +102,14 @@ def replace_string_in_file(fileName, text_to_search, text_to_replace):
     with open(fileName, 'w') as file_handle:
         file_handle.write(filedata)
 
+
 def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f, **kwargs):
     with OpenWithNone(stdin_f, 'r') as input_file:
         with open(stdout_f, 'w') as stdout_file:
             with open(stderr_f, 'w') as stderr_file:
                 try:
-                    call([program]+cmdargs, stdin=input_file, stdout=stdout_file, stderr=stderr_file, **kwargs)
+                    call([program]+cmdargs, stdin=input_file,
+                         stdout=stdout_file, stderr=stderr_file, **kwargs)
                 except Exception as e:
                     print(e)
                     print('program ', program)
@@ -110,6 +121,7 @@ def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f, **kwargs):
                     print(getcwd())
                     raise
     replace_string_in_file(stdout_f, '\r', '\n')
+
 
 def name_stdout(program, add=''):
     if isinstance(program, basestring):
@@ -319,10 +331,13 @@ def execute(programs, input_file, dirs,
     dirs = check_dirs(dirs)
     input_file = path.join(getcwd(), input_file)
     calc_all = pick_filter_func(filter_func, calc_all)
+    dir_IDs = []
     for replacers in replace_iter_gen(product_iters=product_iters,
                                       chain_iters=chain_iters,
                                       just_replace=just_replace):
-        calc_all(replacers, dirs, input_file, programs, use_stdin=use_stdin)
+        dir_ID = calc_all(replacers, dirs, input_file, programs, use_stdin=use_stdin)
+        dir_IDs.append(dir_ID)
+    return dir_IDs
 
 def execute_lock_par(lock,parallel,*args,**kwargs):
     """ Convenience function for running execute with a lock and/or in parallel """
@@ -331,7 +346,7 @@ def execute_lock_par(lock,parallel,*args,**kwargs):
         execute_here = parallel_wrap(parallel)(execute_here)
     if lock:
         execute_here = lock_wrap(lock)(execute_here)
-    execute_here(*args,**kwargs)
+    return execute_here(*args,**kwargs)
 
         
 def common_start(chain_iters, just_replace):

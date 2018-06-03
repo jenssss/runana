@@ -25,6 +25,9 @@ Extra functions
 ---------------
 	      
 .. autofunction:: runana.run.common_start
+
+.. autofunction:: runana.run.run_core
+
 		  
 		  
 Automated convergence testing

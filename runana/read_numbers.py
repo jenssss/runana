@@ -64,14 +64,12 @@ def split(delimiters, string, maxsplit=0):
     regexPattern = '|'.join(map(re.escape, delimiters))
     return re.split(regexPattern, string, maxsplit)
 
+@ignore_missing_file
 def read_file_sev_blocks(filename):
-    try:
-        with open(filename,'r') as fil:
-            blocks = [[[float(element) for element in line.split()]
-                       for line in block.split('\n') if len(line)>0]
-                      for block in split(['\n \n','\n\n'],fil.read()) if len(block)>0]
-    except IOError:
-        blocks = None
+    with open(filename,'r') as fil:
+        blocks = [[[float(element) for element in line.split()]
+                   for line in block.split('\n') if len(line)>0]
+                  for block in split(['\n \n','\n\n'],fil.read()) if len(block)>0]
     return blocks
 
     
@@ -84,15 +82,12 @@ def numpy_file_read(fname):
     return a
 
 
+@ignore_missing_file
 def read_file_sev_blocks_c(filename):
-    try:
-        with open(filename,'r') as fil:
-            blocks = [[[num_c(element) for element in line.split()]
-                       for line in block.split('\n') if len(line)>0]
-                      for block in split(['\n \n','\n\n'],fil.read()) if len(block)>0]
-            print(blocks)
-    except IOError:
-        blocks = None
+    with open(filename,'r') as fil:
+        blocks = [[[num_c(element) for element in line.split()]
+                   for line in block.split('\n') if len(line)>0]
+                  for block in split(['\n \n','\n\n'],fil.read()) if len(block)>0]
     return blocks
 
 def num_c(s):
@@ -109,8 +104,13 @@ def num(s):
     try:
         return int(s)
     except ValueError:
-        return float(s)
+        try:
+            return float(s)
+        except ValueError:
+            return s
+        
     
+@ignore_missing_file
 def read_file_one_block(filename):
     with open(filename,'r') as fil:
         block = [[num(element) for element in line.split()]
@@ -118,6 +118,7 @@ def read_file_one_block(filename):
     return block
 
 
+@ignore_missing_file
 def read_file_one_block_c(filename):
     with open(filename,'r') as fil:
         block = [[num_c(element) for element in line.split()]
@@ -125,6 +126,7 @@ def read_file_one_block_c(filename):
     return block
 
 
+@ignore_missing_file
 def read_file_one_block_numpy(filename):
     import numpy as np
     block = read_file_one_block(filename)
