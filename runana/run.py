@@ -9,6 +9,7 @@ from functools import wraps
 from contextlib import contextmanager
 from runana import input_file_handling
 from operator import add, mul
+from runana.read_numbers import ignore_error
 
 try:
     from operator import div
@@ -132,8 +133,10 @@ def name_stdout(program, add=''):
     stdouts = stdouts.split('.')[0].split('_')[0]+add+'.std'
     return stdouts+'out', stdouts+'err'
 
+
 def run_prog(program, cmdargs=[], stdin_f=None, add='', **kwargs):
     run_program(program, cmdargs, stdin_f, *name_stdout(program, add), **kwargs)
+
 
 def copy_ignore_same(from_file, to_file):
     from shutil import copy, Error
@@ -145,37 +148,30 @@ def copy_ignore_same(from_file, to_file):
     except IOError:
         pass
 
+
 def copy_to_scratch(WorkDir, file_strings):
-    files=[]
+    files = []
     for file_string in file_strings:
         files = files+glob(file_string)
     for fil in files:
         copy_ignore_same(fil, WorkDir)
 
-def num(s):
-    try:
-        return int(s)
-    except ValueError:
-        try:
-            return float(s)
-        except ValueError:
-            return s
 
-def get_immediate_subdirectories(a_dir):
-    try:
-        return [name for name in listdir(a_dir)
-                if path.isdir(path.join(a_dir, name))]
-    except OSError:
-        return []
+@ignore_error(OSError, ())
+def get_subdirs(a_dir):
+    return [name for name in listdir(a_dir)
+            if path.isdir(path.join(a_dir, name))]
+
 
 def generate_run_ID(work_dir):
-    subdirs = get_immediate_subdirectories(work_dir)
+    subdirs = get_subdirs(work_dir)
     ID = 1
     while True:
         if str(ID) in subdirs:
             ID = ID+1
         else:
             return str(ID)
+
 
 def make_run_dirs(ScratchBase, LScratchBase):
     ID = generate_run_ID(ScratchBase)
@@ -184,6 +180,7 @@ def make_run_dirs(ScratchBase, LScratchBase):
     makedir(work_dir)
     makedir(lwork_dir)
     return ID, work_dir, lwork_dir
+
 
 def lock_wrap_retry(Dir, nretries=10, wait=0.1):
     def decorate(f):
@@ -213,13 +210,16 @@ def lock_wrap_retry(Dir, nretries=10, wait=0.1):
         return call
     return decorate
 
+
 def save_info_in_file(filename, command, copy_back=None):
     with open(filename, 'w') as output_file:
         call(command, stdout=output_file)
     if copy_back:
         copy_ignore_same(filename, copy_back)
 
-def calc_all(replacements, dirs, inp_file, programs, print_finish=True, filter_func='f90nml', use_stdin=False):
+
+def calc_all(replacements, dirs, inp_file, programs,
+             print_finish=True, filter_func='f90nml', use_stdin=False):
 
     base_dir = dirs.scratch_base
     dirID, work_dir, lwork_dir = lock_wrap_retry(base_dir, nretries=10, wait=0.1)(
@@ -239,8 +239,9 @@ def calc_all(replacements, dirs, inp_file, programs, print_finish=True, filter_f
         print('Finished', dict((is_it_tuple(key),elem) for key,elem in replacements.items()))
     return dirID
 
+
 def is_it_tuple(it):
-    if isinstance(it,tuple):
+    if isinstance(it, tuple):
         return it[1]
     else:
         return it
@@ -476,6 +477,7 @@ def display_time(seconds, granularity=2):
             result.append("{0:.0f} {1}".format(value, name))
     return ', '.join(result[:granularity])
 
+
 @contextmanager
 def print_time():
     """ Contextmanager that prints how much time was spent in it"""
@@ -484,8 +486,6 @@ def print_time():
     yield
     end = time.time()
     print(display_time(end-start))
-
-
 
 
 def rel_err_rel_var(O1, O2, x1, x2):

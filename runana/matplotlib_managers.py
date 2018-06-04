@@ -28,7 +28,7 @@ class plot_manager(object):
         if self.print_outfile:
             print(self.outfile)
 
-            
+
 class single_fig_manager(object):
     """ Create a :class:`matplotlib.figure.Figure`
 
@@ -55,7 +55,7 @@ class single_fig_manager(object):
 class single_ax_manager(single_fig_manager):
     """ Create an axis with a single subplot in a `Figure` object.
 
-    Subclassed from :class:`single_fig_manager`, and all the arguments are the 
+    Subclassed from :class:`single_fig_manager`, and all the arguments are the
     same
     """
     def __enter__(self):
@@ -70,4 +70,3 @@ def plot_ax_manager(outfile, *args, **kwargs):
     with plot_manager(outfile, *args, **kwargs) as pp:
         with single_ax_manager(pp) as ax:
             yield ax
-    

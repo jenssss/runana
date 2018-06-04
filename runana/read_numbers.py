@@ -14,6 +14,7 @@ def ignore_error(error=IOError, return_=None):
 
 ignore_missing_file = ignore_error()
 
+
 @ignore_missing_file
 def read_last_number_from_file(fname,pattern=''):
     number = None
@@ -21,6 +22,7 @@ def read_last_number_from_file(fname,pattern=''):
         for number in numbers_in_file_iterator(stdout_file,pattern=pattern):
             pass
     return number
+
 
 @ignore_missing_file
 def read_number_from_file(fname,inumber,pattern=''):
@@ -31,6 +33,7 @@ def read_number_from_file(fname,inumber,pattern=''):
     number = 'Not enough numbers in file'
     return number
 
+
 @ignore_missing_file
 def read_column_from_file(fname,icolumn,pattern=''):
     with open(fname) as stdout_file:
@@ -38,7 +41,6 @@ def read_column_from_file(fname,icolumn,pattern=''):
             for indx,word in enumerate(line.split()):
                 if indx==icolumn-1:
                     return word
-    return None
 
 
 def lines_in_file_iterator(file_handle,pattern=''):
