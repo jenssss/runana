@@ -25,7 +25,7 @@ def read_input_files(workdir, read_func=read_input_files_f90nml):
     """ Recursively searches through all subdirectories of `workdir`.
 `read_func` is run in any directory containing a file named 'hostname.txt',
 and the result is stored in a :class:`ParamDict`, with the path in tuple-form
- as key. This :class:`ParamDict` is returned.
+as key. This :class:`ParamDict` is returned.
 
     Subdirectories of a directory with a 'hostname.txt' file are not searched.
     """

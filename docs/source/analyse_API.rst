@@ -22,7 +22,12 @@ Get parameters
 
 .. autofunction:: runana.input_file_handling.read_input_files_upname
 
+.. autofunction:: runana.input_file_handling.read_input_files_positional
+		  
 .. autofunction:: runana.input_file_handling.read_upname_file
+
+.. autofunction:: runana.input_file_handling.read_positional_file
+
 		  
 
 Get other stuff
