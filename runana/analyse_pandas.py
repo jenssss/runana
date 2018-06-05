@@ -69,7 +69,7 @@ class SeqsDataFrame(pd.DataFrame):
             for numparamval in data[self.numparamval]:
                 data_out.loc[(numparam, numparamval), str(column)+'_reldiff'] = RelErrorEstimate[numparamval]
         return data_out
-    
+
     def calc_convergence(self):
         """ Calculate `(O2-O1)/O2*x2/(x2-x1)` where `O` are values and `x` are
  numerical parameters

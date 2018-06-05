@@ -147,7 +147,7 @@ def read_input_files_f90nml(patterns=['*.nml'],
                              for pattern in string_or_iterable(patterns))))
     dicts = dict((filename, read_one_file(filename))
                  for filename in filenames)
-    return superset(dicts)
+    return superset_collisions(dicts)
 
 
 def read_input_files_upname(patterns=['*.inp']):
@@ -198,6 +198,33 @@ def superset(alldicts):
     return superdict
 
 
+def superset_collisions(alldicts):
+    """ Returns dict containing all keys from the dicts contained in `alldicts`
+
+    :param dict alldicts: a dictionary containing dictionaries
+
+    If two dictionaries contains the same key, the keys will be appended with
+    the difference of the file names. """
+    superdict = {}
+    filenames = alldicts.keys()
+    filediff_dict = dict(zip(filenames,
+                             extract_noncommon_substrings(filenames)))
+    for key, dict_ in alldicts.items():
+        for innerkey, value in dict_.items():
+            if innerkey in superdict and value != superdict[innerkey]:
+                try:
+                    innerkey += filediff_dict[key]
+                except TypeError:
+                    try:
+                        # innerkey += (filediff_dict[key],)
+                        innerkey = (innerkey[0],
+                                    str(innerkey[1]) + filediff_dict[key])
+                    except TypeError:
+                        innerkey = str(innerkey) + filediff_dict[key]
+            superdict[innerkey] = value
+    return superdict
+
+
 def num_str(s):
     """ Tries to convert input to integer, then tries float, then complex.
 If all these fails the string is returned unchanged"""
@@ -223,21 +250,21 @@ def extract_common_substrings(strings):
     return common
 
 
-def extract_common_and_diff_substrings(strings):
-    """ Returns parts of strings that are common and different.
+def extract_noncommon_substrings(strings, common=None):
+    """ Returns a list with parts of strings that are different.
 
-    First return value is a string with tthe common part, second return value
-ia a list with all parts that are not common parts """
-    common = extract_common_substrings(strings)
+    `common` is a string of all the common parts of `strings`, such as e.g.
+    returned from func:`extract_common_substrings`. If set set to `None`,
+    func:`extract_common_substrings` will be called to set this variable """
+    if common is None:
+        common = extract_common_substrings(strings)
     noncommon = [''.join(ndiff_select(string, common, '-'))
                  for string in strings]
-    return common, noncommon
-
-
-from difflib import ndiff
+    return noncommon
 
 
 def ndiff_select(string, common, selector=' '):
+    from difflib import ndiff
     for s in ndiff(string, common):
         if s[0] == selector:
             yield '{}'.format(s[-1])
