@@ -28,7 +28,7 @@ Extra functions
 
 .. autofunction:: runana.run.run_core
 
-		  
+
 		  
 Automated convergence testing
 -----------------------------

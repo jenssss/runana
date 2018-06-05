@@ -4,15 +4,16 @@ from runana import analyse
 from runana import analyse_pandas
 from runana import read_numbers
 
+
 def run_analysis(workdir):
     print(workdir)
-    
+
     dict_w_parameters = analyse.read_input_files(workdir)
 
     dict_w_parameters.diff()
-    
+
     seqs = analyse.Seqs(dict_w_parameters)
-            
+
     panda_data = analyse_pandas.SeqsDataFrame().import_from_seq(seqs)
     print(panda_data)
 
@@ -33,11 +34,10 @@ def run_analysis(workdir):
         panda_conv.plot_('plot_test_'+pattern+'.pdf',
                          logy=True, param_panda=param_panda)
 
-            
 
 if (__name__ == "__main__"):
     with open('latest_run_dir.txt') as file_:
         workdir = file_.read()
     run_analysis(
-        workdir = workdir
+        workdir=workdir
     )

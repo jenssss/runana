@@ -211,3 +211,33 @@ If all these fails the string is returned unchanged"""
                 return complex(s)
             except ValueError:
                 return s
+
+
+def extract_common_substrings(strings):
+    """ Returns all substrings that are common between the strings in the list
+`strings` as a single string.
+    """
+    common = strings[0]
+    for string in strings:
+        common = ''.join(ndiff_select(string, common))
+    return common
+
+
+def extract_common_and_diff_substrings(strings):
+    """ Returns parts of strings that are common and different.
+
+    First return value is a string with tthe common part, second return value
+ia a list with all parts that are not common parts """
+    common = extract_common_substrings(strings)
+    noncommon = [''.join(ndiff_select(string, common, '-'))
+                 for string in strings]
+    return common, noncommon
+
+
+from difflib import ndiff
+
+
+def ndiff_select(string, common, selector=' '):
+    for s in ndiff(string, common):
+        if s[0] == selector:
+            yield '{}'.format(s[-1])
