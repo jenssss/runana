@@ -3,7 +3,7 @@ from os import path
 from functools import partial
 from contextlib import contextmanager
 
-from runana.read_numbers import ignore_error
+from runana.read_numbers import ignored
 from runana.run import cwd, get_subdirs
 from runana.input_file_handling import read_input_files_f90nml, string_or_iterable, superset
 
@@ -79,7 +79,7 @@ directory that is the join of `workdir` and the argument to the function
     return read_from_dir(roll_in_args(read_func, *args, **kwargs), workdir)
 
 
-@ignore_error(TypeError)
+@ignored(TypeError)
 def collect(dir_, read_func):
     """ Switches to `dir_` and runs `read_func`"""
     with cwd(dir_):
@@ -98,7 +98,7 @@ def compose2(f__, g__):
     return fg_
 
 
-@ignore_error(TypeError)
+@ignored(TypeError)
 def join_dirs(subdirs, workdir):
     dir_ = path.join(workdir,
                      *tuple(string_or_iterable(subdirs)))
@@ -156,12 +156,12 @@ def catch_list_values(value):
     return value
 
 
-@contextmanager
-def ignored(*exceptions):
-    try:
-        yield
-    except exceptions:
-        pass
+# @contextmanager
+# def ignored(*exceptions):
+#     try:
+#         yield
+#     except exceptions:
+#         pass
 
 
 def get_indices_dict(idx, param_dicts, keys):

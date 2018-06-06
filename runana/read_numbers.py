@@ -1,19 +1,39 @@
-from functools import wraps
+from contextlib import contextmanager
+try:
+    @contextmanager
+    def whatever():
+        yield
+
+    @whatever()
+    def whateever():
+        pass
+except TypeError:
+    from contextlib2 import contextmanager
 
 
-def ignore_error(error=IOError, return_=None):
-    def ignore(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except error:
-                return return_
-        return wrapper
-    return ignore
+@contextmanager
+def ignored(*exceptions):
+    try:
+        yield
+    except exceptions:
+        pass
 
 
-ignore_missing_file = ignore_error()
+# ignored = contextmanager(ignored)
+
+# def ignore_error(error=IOError, return_=None):
+#     def ignore(func):
+#         @wraps(func)
+#         def wrapper(*args, **kwargs):
+#             try:
+#                 return func(*args, **kwargs)
+#             except error:
+#                 return return_
+#         return wrapper
+#     return ignore
+
+
+ignore_missing_file = ignored(IOError)
 
 
 @ignore_missing_file

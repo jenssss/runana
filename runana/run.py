@@ -9,7 +9,7 @@ from functools import wraps
 from contextlib import contextmanager
 from runana import input_file_handling
 from operator import add, mul
-from runana.read_numbers import ignore_error
+from runana.read_numbers import ignored
 
 try:
     from operator import div
@@ -160,7 +160,7 @@ def copy_to_scratch(WorkDir, file_strings):
         copy_ignore_same(fil, WorkDir)
 
 
-@ignore_error(OSError, ())
+@ignored(OSError)
 def get_subdirs(a_dir):
     return [name for name in listdir(a_dir)
             if path.isdir(path.join(a_dir, name))]

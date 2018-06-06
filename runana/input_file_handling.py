@@ -206,7 +206,7 @@ def superset_collisions(alldicts):
     If two dictionaries contains the same key, the keys will be appended with
     the difference of the file names. """
     superdict = {}
-    filenames = alldicts.keys()
+    filenames = list(alldicts.keys())
     filediff_dict = dict(zip(filenames,
                              extract_noncommon_substrings(filenames)))
     for key, dict_ in alldicts.items():

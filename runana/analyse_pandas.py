@@ -2,7 +2,7 @@
 import pandas as pd
 
 from runana.run import is_it_tuple
-from runana.read_numbers import ignore_error
+from runana.read_numbers import ignored
 
 
 class SeqsDataFrame(pd.DataFrame):
@@ -145,7 +145,7 @@ def write_paramdict(paramdict, ignore=None, connector='='):
 
 def return_dict_element(dict_, error=KeyError):
     """ Returns a function that returns `dict_[arg]`, while ignoring `error`"""
-    @ignore_error(error)
+    @ignored(error)
     def return_element(el):
         return dict_[el]
     return return_element
