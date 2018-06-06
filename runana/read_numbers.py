@@ -1,70 +1,75 @@
-from os import path;  pjoin = path.join
 from functools import wraps
+
 
 def ignore_error(error=IOError, return_=None):
     def ignore(func):
         @wraps(func)
-        def wrapper(*args,**kwargs):
+        def wrapper(*args, **kwargs):
             try:
-                return func(*args,**kwargs)
+                return func(*args, **kwargs)
             except error:
                 return return_
         return wrapper
     return ignore
 
+
 ignore_missing_file = ignore_error()
 
 
 @ignore_missing_file
-def read_last_number_from_file(fname,pattern=''):
+def read_last_number_from_file(fname, pattern=''):
     number = None
     with open(fname) as stdout_file:
-        for number in numbers_in_file_iterator(stdout_file,pattern=pattern):
+        for number in numbers_in_file_iterator(stdout_file, pattern=pattern):
             pass
     return number
 
 
 @ignore_missing_file
-def read_number_from_file(fname,inumber,pattern=''):
+def read_number_from_file(fname, inumber, pattern=''):
     with open(fname) as stdout_file:
-        for indx,number in enumerate(numbers_in_file_iterator(stdout_file,pattern=pattern)):
-            if indx==inumber-1:
+        for indx, number in enumerate(numbers_in_file_iterator(stdout_file, pattern=pattern)):
+            if indx == inumber-1:
                 return number
     number = 'Not enough numbers in file'
     return number
 
 
 @ignore_missing_file
-def read_column_from_file(fname,icolumn,pattern=''):
+def read_column_from_file(fname, icolumn, pattern=''):
     with open(fname) as stdout_file:
-        for line in lines_in_file_iterator(stdout_file,pattern=pattern):
-            for indx,word in enumerate(line.split()):
-                if indx==icolumn-1:
+        for line in lines_in_file_iterator(stdout_file, pattern=pattern):
+            for indx, word in enumerate(line.split()):
+                if indx == icolumn-1:
                     return word
 
 
-def lines_in_file_iterator(file_handle,pattern=''):
+def lines_in_file_iterator(file_handle, pattern=''):
     for line in file_handle:
         if pattern in line:
             yield line
 
-def words_in_file_iterator(file_handle,pattern=''):
-    for line in lines_in_file_iterator(file_handle,pattern=pattern):
+
+def words_in_file_iterator(file_handle, pattern=''):
+    for line in lines_in_file_iterator(file_handle, pattern=pattern):
         for word in line.split():
             yield word
 
-def numbers_in_file_iterator(file_handle,pattern=''):
-    for word in words_in_file_iterator(file_handle,pattern=pattern):
+
+def numbers_in_file_iterator(file_handle, pattern=''):
+    for word in words_in_file_iterator(file_handle, pattern=pattern):
         try:
-            number=float(word)
+            number = float(word)
             yield number
         except ValueError:
             pass
+
 
 def split(delimiters, string, maxsplit=0):
     import re
     regexPattern = '|'.join(map(re.escape, delimiters))
     return re.split(regexPattern, string, maxsplit)
+
 
 @ignore_missing_file
 def read_file_sev_blocks(filename):

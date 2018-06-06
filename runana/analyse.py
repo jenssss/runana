@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from os import path
 from functools import partial
+from contextlib import contextmanager
 
 from runana.read_numbers import ignore_error
 from runana.run import cwd, get_subdirs
@@ -140,33 +141,47 @@ class Seqs(dict):
                 yield key, indx, seq_list
 
 
-def catch_list_values(value, index):
+# def catch_list_values(value, index):
+#     try:
+#         ret = {value: index}
+#     except TypeError:
+#         ret = {tuple(value): index}
+#     return ret
+
+def catch_list_values(value):
     try:
-        ret = {value: index}
+        hash(value)
     except TypeError:
-        ret = {tuple(value): index}
-    return ret
+        value = tuple(value)
+    return value
 
 
-def get_indices_dict(index, param_dicts, keys):
+@contextmanager
+def ignored(*exceptions):
+    try:
+        yield
+    except exceptions:
+        pass
+
+
+def get_indices_dict(idx, param_dicts, keys):
     indices_dict = {}
-    for index_compare in keys:
-        for key, value, value_compare in get_index_for_all_but_one_changed(param_dicts[index], param_dicts[index_compare]):
-            if key not in indices_dict:
-                indices_dict[key] = catch_list_values(value, index)
-            indices_dict[key].update(catch_list_values(value_compare, index_compare))
+    for idx_compare in keys:
+        for key, val, val_compare in get_index_for_all_but_one_changed(param_dicts[idx], param_dicts[idx_compare]):
+            # if key not in indices_dict:
+            #     indices_dict[key] = catch_list_values(val, idx)
+            # indices_dict[key].update(catch_list_values(val_compare, idx_compare))
+            indices_dict.setdefault(key, {catch_list_values(val): idx}).update({catch_list_values(val_compare): idx_compare})
     return indices_dict
 
 
 def get_index_for_all_but_one_changed(nl1, nl2):
     for key, value in nl1.items():
-        try:
+        with ignored(KeyError):
             value2 = nl2[key]
             if value != value2:
                 if dict_eq_ignore(nl1, nl2, [key]):
                     yield key, value, value2
-        except KeyError:
-            pass
 
 
 def dict_eq_ignore(dict1, dict2, ignore_keys=()):

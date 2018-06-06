@@ -39,7 +39,8 @@ def cwd(path):
 def generate_seq(start, incr, nvalues=0, incr_func=add):
     """Iterator that returns a sequence of numbers
 
-    :param incr_func: function used to increment the return value. Can be one of the strings 'add', 'mul' or 'div'
+    :param incr_func: function used to increment the return value. Can be one
+        of the strings 'add', 'mul' or 'div'
     :type incr_func: func or str
     """
     if isinstance(incr_func, basestring):
@@ -60,8 +61,10 @@ class Dirs(object):
     """Container class for names of directories
 
     :param str scratch_base: Directory prefix
-    :param str local_scratch_base: Prefix for directory in which programs are run. If `None` then set to `scratch_base`
-    :param list copy_2_scratch: List of strings that are globbed and copied from the local scratch directory to scratch directory
+    :param str local_scratch_base: Prefix for directory in which programs
+        are run. If `None` then set to `scratch_base`
+    :param list copy_2_scratch: List of strings that are globbed and copied
+        from the local scratch directory to scratch directory
     """
     def __init__(self, scratch_base, local_scratch_base=None,
                  copy_2_scratch=['*.txt', '*.nml', '*.stdout', '*.dat']):
@@ -201,11 +204,10 @@ def lock_wrap_retry(Dir, nretries=10, wait=0.1):
                 else:
                     print('Failed to get ID generation lock')
                 try:
-                    ret=f(*args, **kwargs)
+                    ret = f(*args, **kwargs)
                     fcntl.lockf(lock_fp, fcntl.LOCK_UN)
-                except:
+                finally:
                     fcntl.lockf(lock_fp, fcntl.LOCK_UN)
-                    raise
             return ret
         return call
     return decorate
@@ -378,11 +380,12 @@ class PoolApplyAsyncWrap(object):
             return ret
         return wrapped_f
 
-from contextlib import contextmanager
+
 @contextmanager
 def multi_stuff(parallel, kwargs):
     import multiprocessing
     import signal
+
     def initializer():
         """Ignore CTRL+C in the worker process."""
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -415,7 +418,8 @@ def map_nested_dicts(dict_, func):
     else:
         ret = func(dict_)
     return ret
-    
+
+
 def parallel_wrap(parallel=None):
     def decorate(fun):
         @wraps(fun)
@@ -448,11 +452,10 @@ def lock_wrap(dir_):
                     print('Lock file ', pid_file)
                     raise SystemExit
                 try:
-                    ret=fun(*args, **kwargs)
+                    ret = fun(*args, **kwargs)
                     fcntl.lockf(lock_fp, fcntl.LOCK_UN)
-                except:
+                finally:
                     fcntl.lockf(lock_fp, fcntl.LOCK_UN)
-                    raise
             return ret
         return call
     return decorate
@@ -465,6 +468,7 @@ INTERVALS = (
     ('minutes', 60),
     ('seconds', 1),
     )
+
 
 def display_time(seconds, granularity=2):
     result = []
@@ -497,7 +501,7 @@ class ConvCrit(object):
 
     :parameter func data_read: Function which will be executed in the directory in which the programs was run. It should return the observable in terms of which convergence is sought
 
-    :parameter float eps: Desired precision 
+    :parameter float eps: Desired precision
 
     :parameter func conv_funv: Function that calculates convergence criterion. It should take 4 arguments, `f(O1,O2,x1,x2)`, where `x1` and `x2` are the values of the numerical parameter at the current and previous calculation and `O1` and `O2` are the corresponding observable values
 
@@ -509,9 +513,11 @@ class ConvCrit(object):
         self.itermax = itermax
         self.common_start = common_start
 
+
 def make_run_string(replacers):
-    replacers = dict((is_it_tuple(key),elem) for key,elem in replacers.items())
+    replacers = dict((is_it_tuple(key), elem) for key, elem in replacers.items())
     return str(replacers)
+
 
 def auto_converge_var(var_name, var, replacements, dirs, inp_file, programs, conv_crit):
     data_read = conv_crit.data_read
@@ -538,7 +544,7 @@ def auto_converge_var(var_name, var, replacements, dirs, inp_file, programs, con
             break
         prevdirID = dirID
         varvalue_prev = varvalue
-    return {'VarValue':varvalue, 'PrevVarValue':varvalue_prev, 'iteration':iteration+1}
+    return {'VarValue': varvalue, 'PrevVarValue': varvalue_prev, 'iteration': iteration+1}
 
 
 def auto_conv_sub(chain_iters,replacers, dirs, inp_file, programs, conv_crit, auto_converge_var):
