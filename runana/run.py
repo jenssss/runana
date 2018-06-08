@@ -259,13 +259,14 @@ def run_core(programs, inp_file_relative, use_stdin=False):
                 run_prog(program, [inp_file_relative])
 
 
-def add_to_fname(fname,add):
+def add_to_fname(fname, add):
     fname_list = fname.split('.')
     fname_list[-2] = fname_list[-2]+add
     return '.'.join(fname_list)
 
-def rerun(replacements,lworkdir,inp_file,programs,filter_func='f90nml'):
-    inp_file_replace = add_to_fname(inp_file,'_rerun')
+
+def rerun(replacements, lworkdir, inp_file, programs, filter_func='f90nml'):
+    inp_file_replace = add_to_fname(inp_file, '_rerun')
     with cwd(lworkdir):
         input_file_handling.INP_FILE_FILTERS[filter_func](inp_file, inp_file_replace, replacements)
         save_info_in_file('re_hostname.txt', 'hostname')
@@ -279,23 +280,27 @@ def merge_dicts(x, y):
     z.update(y)
     return z
 
+
 def product_replacements(product_iters):
     from itertools import product
     for value_set in product(*product_iters.values()):
         yield dict(zip(product_iters.keys(), value_set))
 
+
 def chain_replacements(chain_iters):
-    if len(chain_iters)>=1:
+    if len(chain_iters) >= 1:
         for key in chain_iters:
             for value in chain_iters[key]:
                 yield {key: value}
     else:
         yield {}
 
+
 def replace_iter_gen(product_iters={}, chain_iters={}, just_replace={}):
     for prod_iter in product_replacements(product_iters):
         for chain_iter in chain_replacements(chain_iters):
-            yield merge_dicts(merge_dicts(just_replace,prod_iter),chain_iter)
+            yield merge_dicts(merge_dicts(just_replace, prod_iter), chain_iter)
+
 
 def check_dirs(dirs):
     if not isinstance(dirs,Dirs):
@@ -338,11 +343,12 @@ def execute(programs, input_file, dirs,
     for replacers in replace_iter_gen(product_iters=product_iters,
                                       chain_iters=chain_iters,
                                       just_replace=just_replace):
-        dir_ID = calc_all(replacers, dirs, input_file, programs, use_stdin=use_stdin)
+        dir_ID = calc_all(replacers, dirs, input_file, programs,
+                          use_stdin=use_stdin)
         dir_IDs.append(dir_ID)
     return dir_IDs
 
-def execute_lock_par(lock,parallel,*args,**kwargs):
+def execute_lock_par(lock, parallel, *args, **kwargs):
     """ Convenience function for running execute with a lock and/or in parallel """
     execute_here = execute
     if parallel:
@@ -353,8 +359,8 @@ def execute_lock_par(lock,parallel,*args,**kwargs):
 
         
 def common_start(chain_iters, just_replace):
-    """ Returns modified `chain_iters` and `just_replace` such that the calculations
- will start at the first value of each variable in chain_iter
+    """ Returns modified `chain_iters` and `just_replace` such that the
+ calculations will start at the first value of each variable in chain_iter
     """
     chain_iters_out = chain_iters.copy()
     replacers = {}
@@ -365,7 +371,7 @@ def common_start(chain_iters, just_replace):
     just_replace = just_replace.copy()
     just_replace.update(replacers)
     return chain_iters_out, just_replace
-    
+
 
 class PoolApplyAsyncWrap(object):
     def __init__(self, pool):
@@ -374,9 +380,12 @@ class PoolApplyAsyncWrap(object):
     def __call__(self, fun):
         def wrapped_f(*args, **kwargs):
             import copy
-            args=copy.deepcopy(args)
-            kwargs=copy.deepcopy(kwargs)
-            ret=self.pool.apply_async(fun, args, kwargs)
+            for arg in args:
+                print(arg)
+                copy.deepcopy(arg)
+            args = copy.deepcopy(args)
+            kwargs = copy.deepcopy(kwargs)
+            ret = self.pool.apply_async(fun, args, kwargs)
             return ret
         return wrapped_f
 

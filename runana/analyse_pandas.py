@@ -31,6 +31,16 @@ class SeqsDataFrame(pd.DataFrame):
             if not dat.empty:
                 yield (numparam, column), dat
 
+    def iterator_all(self):
+        for (numparam, column), dat in self.iterator():
+            for (numparamvalue, elem) in dat.iteritems():
+                yield ((numparam, numparamvalue), column), elem
+
+    def iterator_all_drop(self):
+        for (numparam, column), dat in self.iterator_drop():
+            for (numparamvalue, elem) in dat.iteritems():
+                yield ((numparam, numparamvalue), column), elem
+
     def import_from_seq(self, seqs, inplace=False):
         """Converts the seqs object into a SeqsDataFrame"""
         seqsdf = self if inplace else self.copy()

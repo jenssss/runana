@@ -46,6 +46,16 @@ def read_last_number_from_file(fname, pattern=''):
 
 
 @ignore_missing_file
+def read_smallest_number_from_file(fname, pattern=''):
+    with open(fname) as stdout_file:
+        smallest = 100000
+        for number in numbers_in_file_iterator(stdout_file, pattern=pattern):
+            if number < smallest:
+                smallest = number
+    return smallest
+
+
+@ignore_missing_file
 def read_number_from_file(fname, inumber, pattern=''):
     with open(fname) as stdout_file:
         for indx, number in enumerate(numbers_in_file_iterator(stdout_file, pattern=pattern)):
