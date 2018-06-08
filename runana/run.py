@@ -287,19 +287,32 @@ def product_replacements(product_iters):
         yield dict(zip(product_iters.keys(), value_set))
 
 
+def co_replacements(co_iters):
+    if len(co_iters) >= 1:
+        for vector in zip(*co_iters.values()):
+            yield dict(zip(co_iters.keys(), vector))
+    else:
+        yield {}
+
+
 def chain_replacements(chain_iters):
     if len(chain_iters) >= 1:
-        for key in chain_iters:
-            for value in chain_iters[key]:
+        for key, chain_iter in chain_iters.items():
+            for value in chain_iter:
                 yield {key: value}
     else:
         yield {}
 
 
-def replace_iter_gen(product_iters={}, chain_iters={}, just_replace={}):
+def replace_iter_gen(product_iters={}, chain_iters={}, co_iters={},
+                     just_replace={}):
     for prod_iter in product_replacements(product_iters):
         for chain_iter in chain_replacements(chain_iters):
-            yield merge_dicts(merge_dicts(just_replace, prod_iter), chain_iter)
+            for co_iter in co_replacements(co_iters):
+                yield merge_dicts(merge_dicts(merge_dicts(just_replace,
+                                                          prod_iter),
+                                              chain_iter),
+                                  co_iter)
 
 
 def check_dirs(dirs):
@@ -312,29 +325,38 @@ def pick_filter_func(filter_func, calc_all):
     return partial(calc_all,filter_func=filter_func)
 
 def execute(programs, input_file, dirs,
-            chain_iters={}, product_iters={}, just_replace={},
+            chain_iters={}, product_iters={}, co_iters={}, just_replace={},
             filter_func='f90nml', use_stdin=False,
             calc_all=calc_all):
     """Run sequence of programs with different parameters defined by iters.
 
-    :param list programs: List of strings with names of programs. Should contain absolute paths. Could alternately contain functions
+    :param list programs: List of strings with names of programs. Should
+        contain absolute paths. Could alternately contain functions
 
     :param str input_file: Input file
 
     :param runana.run.Dirs dirs: Base directory in which programs will be run
     :type dirs: str or runana.run.Dirs
 
-    :param dict chain_iters: Entries of the form {'Name of parameter':[*values to replace with*]}
+    :param dict chain_iters: Entries of the form
+        {'Name of parameter':[*values to replace with*]}
 
     :param dict product_iters: Like `chain_iters`, but runs all combinations
 
-    :param dict just_replace: Entries of the form {'Name of parameter':*value to replace with*}
+    :param dict co_iters: Runs with several parameters changing simultanously
 
-    :param str filter_func: Which filter function to use. Options are listed as keys in the INPUT_FILE_FILTERS dictionary
+    :param dict just_replace: Entries of the form
+        {'Name of parameter':*value to replace with*}
 
-    :param bool use_stdin: send in the content of the filtered input file through stdin rather passing the name of the input file as the first command line argument
+    :param str filter_func: Which filter function to use. Options are listed
+        as keys in the INPUT_FILE_FILTERS dictionary
 
-    :param func calc_all: Hook for the parallel decorator, please ignore this argument
+    :param bool use_stdin: send in the content of the filtered input file
+        through stdin rather passing the name of the input file as the
+        first command line argument
+
+    :param func calc_all: Hook for the parallel decorator, please ignore
+         this argument
     """
     dirs = check_dirs(dirs)
     input_file = path.join(getcwd(), input_file)
@@ -342,6 +364,7 @@ def execute(programs, input_file, dirs,
     dir_IDs = []
     for replacers in replace_iter_gen(product_iters=product_iters,
                                       chain_iters=chain_iters,
+                                      co_iters=co_iters,
                                       just_replace=just_replace):
         dir_ID = calc_all(replacers, dirs, input_file, programs,
                           use_stdin=use_stdin)
