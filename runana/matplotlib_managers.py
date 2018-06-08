@@ -48,7 +48,7 @@ class single_fig_manager(object):
         return self.fig
 
     def __exit__(self, type, value, traceback):
-        self.pp.savefig(self.fig)
+        self.pp.savefig(self.fig, transparent=True)
         self.fig.clear
 
 

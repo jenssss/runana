@@ -4,8 +4,8 @@ import f90nml
 
 config = f90nml.read(argv[1])
 
-print(config['nlGroup']['variable'])
-print(config['nlGroup2']['other_variable'])
+print(config['nlGroup']['var'])
+print(config['nlGroup2']['varb'])
 
 import time
 import random

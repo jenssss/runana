@@ -1,9 +1,9 @@
 &nlGroup
-  variable = 1
+  var = 1
 &end
 
 &nlGroup2
-  other_variable = -2.0
+  varb = -2.0
   third_variable = 'a'
 &end
 

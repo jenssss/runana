@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from os import path
 from functools import partial
-from contextlib import contextmanager
+from collections import deque
 
 from runana.read_numbers import ignored
 from runana.run import cwd, get_subdirs
@@ -124,7 +124,7 @@ class Seqs(dict):
     """
     def __init__(self, param_dicts, *args, **kwargs):
         super(Seqs, self).__init__(*args, **kwargs)
-        keys = list(param_dicts.keys())
+        keys = deque(param_dicts.keys())
         for index in list(keys):
             del keys[0]
             for key, indices in get_indices_dict(index,
@@ -141,12 +141,46 @@ class Seqs(dict):
                 yield key, indx, seq_list
 
 
-# def catch_list_values(value, index):
-#     try:
-#         ret = {value: index}
-#     except TypeError:
-#         ret = {tuple(value): index}
-#     return ret
+class ChangedParams(dict):
+    """ Parameters that changed
+
+    :param dict param_dicts: Dictionary containing dictionaries of parameters,
+        in the form returned from e.g. :func:`collect_from_all`
+    """
+    def __init__(self, param_dicts, *args, **kwargs):
+        super(ChangedParams, self).__init__(*args, **kwargs)
+        pairdiffs = {}
+        ignore = []
+        keys = list(param_dicts.keys())
+        for idx in list(keys):
+            del keys[0]
+            for idx_compare in keys:
+                diffs = find_diff_elements(param_dicts[idx],
+                                           param_dicts[idx_compare])
+                if len(diffs) == 0:
+                    ignore.append(idx_compare)
+                elif idx_compare not in ignore and idx not in ignore:
+                    pairdiffs[(idx, idx_compare)] = diffs
+        for dirs, varnameval in pairdiffs.items():
+            # varnames = frozenset(varnameval.keys())
+            varnames = tuple(varnameval.keys())
+            varvals = varnameval.values()
+            value = dict(zip(dirs, zip(*varvals)))
+            self.setdefault(varnames, [value]).append(value)
+
+
+
+def find_diff_elements(dict1, dict2):
+    diffs = {}
+    for key, value1 in dict1.items():
+        if key in dict2:
+            value2 = dict2[key]
+            if value1 != value2:
+                diffs[key] = (value1,value2)
+        else:
+            diffs[key] = (value1,None)
+    return diffs
+
 
 def catch_list_values(value):
     try:
@@ -154,14 +188,6 @@ def catch_list_values(value):
     except TypeError:
         value = tuple(value)
     return value
-
-
-# @contextmanager
-# def ignored(*exceptions):
-#     try:
-#         yield
-#     except exceptions:
-#         pass
 
 
 def get_indices_dict(idx, param_dicts, keys):
@@ -224,3 +250,17 @@ def dictdiff(alldicts):
             if value_is_same:
                 for dict_ in alldicts.values():
                     del dict_[key]
+
+
+# From: https://rosettacode.org/wiki/Set_consolidation#Python
+def conso(s):
+    if len(s) < 2:
+        return s
+
+    r, b = [s[0]], conso(s[1:])
+    for x in b:
+        if r[0].intersection(x):
+            r[0].update(x)
+        else:
+            r.append(x)
+    return r
