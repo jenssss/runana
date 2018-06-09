@@ -149,7 +149,6 @@ class ChangedParams(dict):
     """
     def __init__(self, param_dicts, *args, **kwargs):
         super(ChangedParams, self).__init__(*args, **kwargs)
-        pairdiffs = {}
         ignore = []
         keys = list(param_dicts.keys())
         for idx in list(keys):
@@ -160,14 +159,27 @@ class ChangedParams(dict):
                 if len(diffs) == 0:
                     ignore.append(idx_compare)
                 elif idx_compare not in ignore and idx not in ignore:
-                    pairdiffs[(idx, idx_compare)] = diffs
-        for dirs, varnameval in pairdiffs.items():
+                    self[(idx, idx_compare)] = diffs
+
+    def identify_pairs(self):
+        varvalues = {}
+        pairs = {}
+        for dirs, varnameval in self.items():
             # varnames = frozenset(varnameval.keys())
             varnames = tuple(varnameval.keys())
             varvals = varnameval.values()
             value = dict(zip(dirs, zip(*varvals)))
-            self.setdefault(varnames, [value]).append(value)
+            sdirs = set(dirs)
+            pairs.setdefault(varnames, [sdirs]).append(sdirs)
+            varvalues.setdefault(varnames, value).update(value)
+        return varvalues, pairs
 
+
+def find_connected_components(pairs):
+    connected = {}
+    for key, value in pairs.items():
+        connected[key] = conso(value)
+    return connected
 
 
 def find_diff_elements(dict1, dict2):
@@ -250,6 +262,20 @@ def dictdiff(alldicts):
             if value_is_same:
                 for dict_ in alldicts.values():
                     del dict_[key]
+
+
+# From: https://rosettacode.org/wiki/Set_consolidation#Python
+def consolidate(sets):
+    setlist = [s for s in sets if s]
+    for i, s1 in enumerate(setlist):
+        if s1:
+            for s2 in setlist[i+1:]:
+                intersection = s1.intersection(s2)
+                if intersection:
+                    s2.update(s1)
+                    s1.clear()
+                    s1 = s2
+    return [s for s in setlist if s]
 
 
 # From: https://rosettacode.org/wiki/Set_consolidation#Python

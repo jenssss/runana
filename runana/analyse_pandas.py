@@ -58,6 +58,23 @@ class SeqsDataFrame(pd.DataFrame):
         if not inplace:
             return seqsdf
 
+    def import_from_seq_new(self, seqsnew, varvals, inplace=False):
+        """Converts the seqs object into a SeqsDataFrame"""
+        seqsdf = self if inplace else self.copy()
+        multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
+                                  names=[seqsdf.numparam, seqsdf.numparamval])
+        seqsdf.set_index(multiindx, inplace=True)
+        whatever_scalar = 0.1
+        for nameval, seq_lists in seqsnew.items():
+            for idx, seq_list in enumerate(seq_lists):
+                vals = dict((dir_, try_to_float(varvals[nameval][dir_][0])) for dir_ in seq_list)
+                for dir_, val in sorted(vals.items(), key=lambda x: x[1]):
+                    numparam = is_it_tuple(nameval[0])
+                    seqsdf.loc[(numparam, val), idx] = whatever_scalar
+                    seqsdf.loc[(numparam, val), idx] = dir_
+        if not inplace:
+            return seqsdf
+
     def calc_reldiff(self):
         """ Calculate relative difference of values and numerical parameter values
 
@@ -135,6 +152,27 @@ class SeqsDataFrame(pd.DataFrame):
                         param_series = param_panda.loc[(numparam)]
                         string = ' '.join(extract_interesting_vars(param_series, numparam))
                         ax.text(-0.1, 1.05, string, transform=ax.transAxes)
+
+
+def import_from_double_var(double_var, varvals, inplace=False):
+    """ """
+    seqsdf = pd.DataFrame()
+    multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
+                              names=['numparam', 'numparamval'])
+    seqsdf.set_index(multiindx, inplace=True)
+    whatever_scalar = 0.1
+    for namevals, seq_lists in double_var.items():
+        print(seq_lists)
+        for idx, seq_list in enumerate(seq_lists):
+            vals = dict((dir_, (varvals[namevals][dir_])) for dir_ in seq_list)
+            for dir_, val in sorted(vals.items(), key=lambda x: x[1]):
+                numparam = is_it_tuple(namevals[0])
+                print(val)
+                print((numparam, val[0]), val[1])
+                print((numparam, val[0]), val[1])
+                seqsdf.loc[(numparam, val[0]), val[1]] = whatever_scalar
+                seqsdf.loc[(numparam, val[0]), val[1]] = dir_
+    return seqsdf
 
 
 def extract_interesting_vars(param_series, numparam):
