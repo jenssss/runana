@@ -19,7 +19,6 @@ def run_analysis(workdir):
     changedsparams = analyse.ChangedParams(dict_w_parameters)
     varvals, pairs = changedsparams.identify_pairs()
     # pprint(changedsparams)
-
     # pprint(dict(((tuple(varname[1] for varname in key), list_) for key, list_ in varvals.items())))
     # pprint(dict(((tuple(varname[1] for varname in key), list_) for key, list_ in pairs.items())))
 
@@ -32,7 +31,7 @@ def run_analysis(workdir):
     print(analyse_pandas.import_from_double_var(double_var, varvals))
 
     raise SystemExit
-    
+
     seqs_new = dict((key, list_) for key, list_ in connected.items() if len(key) == 1)
     pprint(seqs_new)
 

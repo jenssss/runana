@@ -10,7 +10,7 @@ from runana.input_file_handling import read_input_files_f90nml, string_or_iterab
 
 def collecting_loop_recursive(dir_, read_func):
     subdirs = get_subdirs(dir_)
-    for subdir in subdirs:
+    for subdir in subdirs or []:
         asubdir = path.join(dir_, subdir)
         if path.exists(path.join(asubdir, 'hostname.txt')):
             with cwd(asubdir):
@@ -170,8 +170,8 @@ class ChangedParams(dict):
             varvals = varnameval.values()
             value = dict(zip(dirs, zip(*varvals)))
             sdirs = set(dirs)
-            pairs.setdefault(varnames, [sdirs]).append(sdirs)
-            varvalues.setdefault(varnames, value).update(value)
+            pairs.setdefault(varnames, []).append(sdirs)
+            varvalues.setdefault(varnames, {}).update(value)
         return varvalues, pairs
 
 

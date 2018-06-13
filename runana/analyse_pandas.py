@@ -68,7 +68,7 @@ class SeqsDataFrame(pd.DataFrame):
         for nameval, seq_lists in seqsnew.items():
             for idx, seq_list in enumerate(seq_lists):
                 vals = dict((dir_, try_to_float(varvals[nameval][dir_][0])) for dir_ in seq_list)
-                for dir_, val in sorted(vals.items(), key=lambda x: x[1]):
+                for dir_, val in sorted(vals.items(), key=lambda x: try_to_float(x[1])):
                     numparam = is_it_tuple(nameval[0])
                     seqsdf.loc[(numparam, val), idx] = whatever_scalar
                     seqsdf.loc[(numparam, val), idx] = dir_
@@ -154,25 +154,72 @@ class SeqsDataFrame(pd.DataFrame):
                         ax.text(-0.1, 1.05, string, transform=ax.transAxes)
 
 
-def import_from_double_var(double_var, varvals, inplace=False):
+# def import_from_double_var(double_var, varvals):
+#     """ """
+#     whatever_scalar = 0.1
+#     double_var_pandas = {}
+#     for namevals, seq_lists in double_var.items():
+#         for idx, seq_list in enumerate(seq_lists):
+#             df = pd.DataFrame()
+#             df.index.name = is_it_tuple(namevals[0])
+#             df.columns.name = is_it_tuple(namevals[1])
+#             vals = dict((dir_, (varvals[namevals][dir_])) for dir_ in seq_list)
+#             for dir_, val in sorted(vals.items(), key=lambda x: x[1]):
+#                 df.loc[val[0], val[1]] = whatever_scalar
+#                 df.loc[val[0], val[1]] = dir_
+#             double_var_pandas.setdefault(namevals, []).append(df)
+#     return double_var_pandas
+def import_from_double_var(double_var, varvals):
     """ """
-    seqsdf = pd.DataFrame()
-    multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
-                              names=['numparam', 'numparamval'])
-    seqsdf.set_index(multiindx, inplace=True)
     whatever_scalar = 0.1
+    double_var_pandas = {}
+    for namevals, seq_list in double_var_iter(double_var):
+        df = pd.DataFrame()
+        df.index.name = is_it_tuple(namevals[0])
+        df.columns.name = is_it_tuple(namevals[1])
+        for val0, val1, dir_ in namevals_iter(namevals, seq_list, varvals):
+            df.loc[val0, val1] = whatever_scalar
+            df.loc[val0, val1] = dir_
+        double_var_pandas.setdefault(namevals, []).append(df)
+    return double_var_pandas
+
+
+def double_var_vectors(double_var, varvals):
+    double_var_out = {}
+    for namevals, seq_list in double_var_iter(double_var):
+        val0, val1, dirs = zip(*namevals_iter(namevals, seq_list, varvals))
+        print(val0, val1, dirs)
+        double_var_out.setdefault(namevals, []).append((val0, val1, dirs))
+    return double_var_out
+
+
+# def double_var_vectors(double_var, varvals):
+#     """ """
+#     double_var = {}
+#     for namevals, seq_lists in double_var.items():
+#         for seq_list in seq_lists:
+#             var1 = []
+#             var2 = []
+#             dirs = []
+#             vals = dict((dir_, (varvals[namevals][dir_])) for dir_ in seq_list)
+#             for dir_, val in sorted(vals.items(), key=lambda x: x[1]):
+#                 var1.append(val[0])
+#                 var2.append(val[0])
+#                 dirs.append(dir_)
+#             double_var.setdefault(namevals, []).append((var1, var2, dirs))
+#     return double_var
+
+
+def double_var_iter(double_var):
     for namevals, seq_lists in double_var.items():
-        print(seq_lists)
-        for idx, seq_list in enumerate(seq_lists):
-            vals = dict((dir_, (varvals[namevals][dir_])) for dir_ in seq_list)
-            for dir_, val in sorted(vals.items(), key=lambda x: x[1]):
-                numparam = is_it_tuple(namevals[0])
-                print(val)
-                print((numparam, val[0]), val[1])
-                print((numparam, val[0]), val[1])
-                seqsdf.loc[(numparam, val[0]), val[1]] = whatever_scalar
-                seqsdf.loc[(numparam, val[0]), val[1]] = dir_
-    return seqsdf
+        for seq_list in seq_lists:
+            yield namevals, seq_list
+
+
+def namevals_iter(namevals, seq_list, varvals):
+    vals = dict((dir_, (varvals[namevals][dir_])) for dir_ in seq_list)
+    for dir_, val in sorted(vals.items(), key=lambda x: try_to_float(x[1])):
+        yield val[0], val[1], dir_
 
 
 def extract_interesting_vars(param_series, numparam):
