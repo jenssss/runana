@@ -16,6 +16,10 @@ Get parameters
 
 .. automethod:: runana.analyse.ParamDict.unpack_list_values
 	       
+.. autoclass:: runana.analyse.ChangedParams
+
+.. automethod:: runana.analyse.ChangedParams.groupby_varname
+
 .. autoclass:: runana.analyse.Seqs
 
 .. autofunction:: runana.input_file_handling.read_input_files_f90nml

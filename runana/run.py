@@ -62,7 +62,7 @@ class Dirs(object):
 
     :param str scratch_base: Directory prefix
     :param str local_scratch_base: Prefix for directory in which programs
-        are run. If `None` then set to `scratch_base`
+        are run. If `None` then `scratch_base` is used
     :param list copy_2_scratch: List of strings that are globbed and copied
         from the local scratch directory to scratch directory
     """

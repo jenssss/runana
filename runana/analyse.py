@@ -142,7 +142,7 @@ class Seqs(dict):
 
 
 class ChangedParams(dict):
-    """ Parameters that changed
+    """ Parameters that changed. Derived from dict
 
     :param dict param_dicts: Dictionary containing dictionaries of parameters,
         in the form returned from e.g. :func:`collect_from_all`
@@ -161,7 +161,11 @@ class ChangedParams(dict):
                 elif idx_compare not in ignore and idx not in ignore:
                     self[(idx, idx_compare)] = diffs
 
-    def identify_pairs(self):
+    def groupby_varname(self):
+        """ Groups elements according to the name of the variable.
+
+        Returns a dictionary containing the values of the variables, and
+        another with all the pairs of runs"""
         varvalues = {}
         pairs = {}
         for dirs, varnameval in self.items():
@@ -173,6 +177,11 @@ class ChangedParams(dict):
             pairs.setdefault(varnames, []).append(sdirs)
             varvalues.setdefault(varnames, {}).update(value)
         return varvalues, pairs
+
+
+def select_by_key_len(connected, length=1):
+    return dict((key, list_) for key, list_ in connected.items()
+                if len(key) == length)
 
 
 def find_connected_components(pairs):
@@ -188,9 +197,9 @@ def find_diff_elements(dict1, dict2):
         if key in dict2:
             value2 = dict2[key]
             if value1 != value2:
-                diffs[key] = (value1,value2)
+                diffs[key] = (value1, value2)
         else:
-            diffs[key] = (value1,None)
+            diffs[key] = (value1, None)
     return diffs
 
 

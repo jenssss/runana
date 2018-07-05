@@ -15,4 +15,5 @@
 &nlIntegrate2
   npointsx = 10
   npointsy = 10
+  powerx = 5
 &end

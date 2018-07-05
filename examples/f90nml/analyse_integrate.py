@@ -13,11 +13,14 @@ def run_analysis(workdir):
     dict_w_parameters.diff()
 
     changedsparams = analyse.ChangedParams(dict_w_parameters)
+    from pprint import pprint
+    pprint(changedsparams)
     varvals, pairs = changedsparams.identify_pairs()
+    pprint(pairs)
     connected = analyse.find_connected_components(pairs)
+    pprint(connected)
     # pprint(varvals)
     double_var = dict((key, list_) for key, list_ in connected.items() if len(key) == 2)
-    from pprint import pprint
     pprint(double_var)
 
     double_pandas = analyse_pandas.import_from_double_var(double_var, varvals)
@@ -36,7 +39,7 @@ def run_analysis(workdir):
             with mplm.single_ax_manager(pp) as ax:
                 z = list(map(read_var,dirs))
                 ax.tripcolor(x, y, z)
-                # ax[1].tricontourf(x,y,z, 20) # choose 20 contour levels, just to show how good its interpolation is
+                # ax[1].tricontourf(x,y,z, 20)
                 ax.plot(x, y, 'ko ')
                 ax.set_xlabel(namevals[0][1])
                 ax.set_ylabel(namevals[1][1])
