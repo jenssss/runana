@@ -48,8 +48,6 @@ def run_analysis(workdir):
     panda_data_new = analyse_pandas.SeqsDataFrame().import_from_seq_new(seqs_new, varvals)
     print(panda_data_new)
 
-
-    
     panda_data = analyse_pandas.SeqsDataFrame().import_from_seq(seqs)
     print(panda_data)
 
@@ -66,7 +64,7 @@ def run_analysis(workdir):
                                       return_dict_element(dict_w_parameters))
 
     panda_var.plot_('plot_test.pdf',
-                             logy=False, param_panda=param_panda)
+                    logy=False, param_panda=param_panda)
 
 
 if (__name__ == "__main__"):

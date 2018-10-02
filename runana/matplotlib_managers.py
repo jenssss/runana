@@ -49,6 +49,7 @@ class single_fig_manager(object):
 
     def __exit__(self, type, value, traceback):
         self.pp.savefig(self.fig, transparent=True)
+        # self.pp.savefig(self.fig, transparent=True, bbox_inches="tight")
         self.fig.clear
 
 

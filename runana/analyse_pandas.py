@@ -233,7 +233,8 @@ def extract_interesting_vars(param_series, numparam):
 
 def write_paramdict(paramdict, ignore=None, connector='='):
     for field in paramdict:
-        if field != ignore:
+        # if field != ignore:
+        if ignore not in field:
             yield ''.join((str(is_it_tuple(field)), connector,
                            str(paramdict[field])))
 

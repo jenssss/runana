@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from __future__ import print_function
 
+from sys import stdout
 from os import path, getcwd, listdir, chdir, makedirs
 from subprocess import call
 from io import FileIO
@@ -112,8 +113,63 @@ def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f, **kwargs):
         with open(stdout_f, 'w') as stdout_file:
             with open(stderr_f, 'w') as stderr_file:
                 try:
-                    call([program]+cmdargs, stdin=input_file,
-                         stdout=stdout_file, stderr=stderr_file, **kwargs)
+                    with open(stdout_f.split('.')[0]+'.cmd', 'w') as cmd_file:
+                        cmd_file.write(' '.join([program]+cmdargs))
+                    with open(stdout_f.split('.')[0]+'.time', 'w') as time_file:
+                        with print_time(time_file):
+                            retcode = call([program]+cmdargs, stdin=input_file,
+                                           stdout=stdout_file, stderr=stderr_file, **kwargs)
+                except Exception as e:
+                    print(e)
+                    print('program ', program)
+                    print('cmdargs', cmdargs)
+                    print('stdin   ', stdin_f)
+                    print('stdout  ', stdout_f)
+                    print('stderr  ', stderr_f)
+                    # print 'kwargs  ', kwargs
+                    print(getcwd())
+                    raise
+    replace_string_in_file(stdout_f, '\r', '\n')
+    return retcode
+
+
+from subprocess import Popen, PIPE
+from time import sleep
+# from time import time
+# from os import fsync
+def run_program_print_output(program, cmdargs,
+                             stdin_f, stdout_f, stderr_f, print_output=False,
+                             **kwargs):
+    with OpenWithNone(stdin_f, 'r') as input_file:
+        with open(stdout_f, 'w', buffering=0) as stdout_file:
+            with open(stderr_f, 'w', buffering=0) as stderr_file:
+                try:
+                    with open(stdout_f.split('.')[0]+'.cmd', 'w') as cmd_file:
+                        cmd_file.write(' '.join([program]+cmdargs))
+                    if print_output:
+                        # start_time = time()
+                        process = Popen([program]+cmdargs, stdin=input_file,
+                                        stdout=PIPE, stderr=PIPE, bufsize=0, **kwargs)
+                        # print(time()-start_time)
+                        # print('Right after process call')
+                        while True:
+                            stdout = process.stdout.readline()
+                            stderr = process.stderr.readline()
+                            if stdout == '' and stderr == '' and process.poll() is not None:
+                                break
+                            if stdout:
+                                # print(time()-start_time)
+                                print(stdout, end='')
+                                stdout_file.write(stdout)
+                                # stdout_file.flush()
+                                # fsync(stdout_file.fileno())
+                            if stderr:
+                                print(stderr, end='')
+                                stderr_file.write(stderr)
+                            sleep(0.1)
+                    else:
+                        call([program]+cmdargs, stdin=input_file,
+                             stdout=stdout_file, stderr=stderr_file, bufsize=0, **kwargs)
                 except Exception as e:
                     print(e)
                     print('program ', program)
@@ -138,7 +194,9 @@ def name_stdout(program, add=''):
 
 
 def run_prog(program, cmdargs=[], stdin_f=None, add='', **kwargs):
-    run_program(program, cmdargs, stdin_f, *name_stdout(program, add), **kwargs)
+    # run_program_print_output(program, cmdargs, stdin_f,
+    return run_program(program, cmdargs, stdin_f,
+                       *name_stdout(program, add), **kwargs)
 
 
 def copy_ignore_same(from_file, to_file):
@@ -161,7 +219,7 @@ def copy_to_scratch(WorkDir, file_strings):
 
 
 @ignored(OSError)
-def get_subdirs(a_dir):
+def get_subdirs(a_dir='./'):
     return [name for name in listdir(a_dir)
             if path.isdir(path.join(a_dir, name))]
 
@@ -248,6 +306,7 @@ def is_it_tuple(it):
     else:
         return it
 
+
 def run_core(programs, inp_file_relative, use_stdin=False):
     for program in programs:
         if hasattr(program, '__call__'):
@@ -259,7 +318,7 @@ def run_core(programs, inp_file_relative, use_stdin=False):
                 run_prog(program, [inp_file_relative])
 
 
-def add_to_fname(fname, add):
+def add_to_fname(fname, add=''):
     fname_list = fname.split('.')
     fname_list[-2] = fname_list[-2]+add
     return '.'.join(fname_list)
@@ -268,13 +327,15 @@ def add_to_fname(fname, add):
 def rerun(replacements, lworkdir, inp_file, programs, filter_func='f90nml'):
     inp_file_replace = add_to_fname(inp_file, '_rerun')
     with cwd(lworkdir):
-        input_file_handling.INP_FILE_FILTERS[filter_func](inp_file, inp_file_replace, replacements)
+        input_file_handling.INP_FILE_FILTERS[filter_func](inp_file,
+                                                          inp_file_replace,
+                                                          replacements)
         save_info_in_file('re_hostname.txt', 'hostname')
         save_info_in_file('restarted.txt', 'date')
         run_core(programs, inp_file_replace, lworkdir)
         save_info_in_file('re_ended.txt', 'date')
 
-            
+
 def merge_dicts(x, y):
     z = x.copy()
     z.update(y)
@@ -324,6 +385,7 @@ from functools import partial
 def pick_filter_func(filter_func, calc_all):
     return partial(calc_all,filter_func=filter_func)
 
+
 def execute(programs, input_file, dirs,
             chain_iters={}, product_iters={}, co_iters={}, just_replace={},
             filter_func='f90nml', use_stdin=False,
@@ -359,7 +421,7 @@ def execute(programs, input_file, dirs,
          this argument
     """
     dirs = check_dirs(dirs)
-    input_file = path.join(getcwd(), input_file)
+    input_file = path.abspath(input_file)
     calc_all = pick_filter_func(filter_func, calc_all)
     dir_IDs = []
     for replacers in replace_iter_gen(product_iters=product_iters,
@@ -515,13 +577,13 @@ def display_time(seconds, granularity=2):
 
 
 @contextmanager
-def print_time():
+def print_time(file_=stdout):
     """ Contextmanager that prints how much time was spent in it"""
     import time
     start = time.time()
     yield
     end = time.time()
-    print(display_time(end-start))
+    print(display_time(end-start), file=file_)
 
 
 def rel_err_rel_var(O1, O2, x1, x2):
@@ -610,7 +672,7 @@ def auto_conv(programs, inp_file, dirs, conv_crit, chain_iters,
     # :param dict just_replace: Entries of the form {'Name of parameter':*value to replace with*}
     # :param str filter_func: Which filter function to use. Options are listed as keys in the INPUT_FILE_FILTERS dictionary
     dirs = check_dirs(dirs)
-    inp_file = path.join(getcwd(), inp_file)
+    inp_file = path.abspath(inp_file)
     results={}
     for replacers in replace_iter_gen(product_iters=product_iters,
                                       just_replace=just_replace):
