@@ -3,6 +3,7 @@ import pandas as pd
 
 from runana.run import is_it_tuple
 from runana.read_numbers import ignored
+from runana import analyse
 
 
 class SeqsDataFrame(pd.DataFrame):
@@ -65,18 +66,39 @@ class SeqsDataFrame(pd.DataFrame):
                                   names=[seqsdf.numparam, seqsdf.numparamval])
         seqsdf.set_index(multiindx, inplace=True)
         whatever_scalar = 0.1
-        for nameval, seq_lists in seqsnew.items():
-            for idx, seq_list in enumerate(seq_lists):
-                vals = dict((dir_, try_to_float(varvals[nameval][dir_][0])) for dir_ in seq_list)
-                for dir_, val in sorted(vals.items(), key=lambda x: try_to_float(x[1])):
-                    numparam = is_it_tuple(nameval[0])
-                    seqsdf.loc[(numparam, val), idx] = whatever_scalar
-                    seqsdf.loc[(numparam, val), idx] = dir_
+        list_ = list(iterate_seqs(seqsnew, varvals))
+        # for multi_idx, dir_ in iterate_seqs(seqsnew, varvals):
+        for multi_idx, dir_ in list_:
+            # print('dir:', dir_)
+            seqsdf.loc[multi_idx] = whatever_scalar
+            # print('seqsdf:', seqsdf)
+            # print('seqsdf.dtypes:', seqsdf.dtypes)
+            # save_multi_idx = multi_idx
+        if list_:
+            seqsdf.loc[multi_idx] = 'lol'
+            # print('astype')
+            # print(save_multi_idx[1])
+            # seqsdf.astype({save_multi_idx[1]: object}, copy=False)
+        # print('seqsdf:', seqsdf)
+        # print('seqsdf.dtypes:', seqsdf.dtypes)
+        for multi_idx, dir_ in list_:
+            seqsdf.loc[multi_idx] = dir_
+            # print('seqsdf:', seqsdf)
+            # print('seqsdf.dtypes:', seqsdf.dtypes)
+        # for nameval, seq_lists in seqsnew.items():
+        #     for idx, seq_list in enumerate(seq_lists):
+        #         vals = dict((dir_, try_to_float(varvals[nameval][dir_][0])) for dir_ in seq_list)
+        #         for dir_, val in sorted(vals.items(), key=lambda x: try_to_float(x[1])):
+        #             numparam = is_it_tuple(nameval[0])
+        #             seqsdf.loc[(numparam, val), idx] = whatever_scalar
+        #             seqsdf.loc[(numparam, val), idx] = dir_
         if not inplace:
             return seqsdf
 
     def calc_reldiff(self):
         """ Calculate relative difference of values and numerical parameter values
+
+        `(O2-O1)/(x2-x1)` where `O` are values and `x` are numerical parameters
 
         All numerical parameter values have to be scalar and numeric
 
@@ -115,7 +137,8 @@ class SeqsDataFrame(pd.DataFrame):
                 relDiff = data.diff()/data
                 RelErrorEstimate = relDiff[column]/relDiff[self.numparamval]
                 RelErrorEstimate = RelErrorEstimate.apply(np.abs)
-                RelErrorEstimate = pd.Series(RelErrorEstimate.values, data[self.numparamval])
+                RelErrorEstimate = pd.Series(RelErrorEstimate.values,
+                                             data[self.numparamval])
                 for numparamval in data[self.numparamval]:
                     data_out.loc[(numparam, numparamval), str(column)+'_conv'] = RelErrorEstimate[numparamval]
             return data_out
@@ -123,6 +146,36 @@ class SeqsDataFrame(pd.DataFrame):
             print(str(e))
             raise TypeError("Make sure that "+self.numparamval+" and values in"
                             + " the SeqsDataFrame are all numerical and scalar")
+
+    def calc_convergence_func(self, func):
+        """ Calculate `func(O1,O2)*x2/(x2-x1)` where `O` are values and `x` are
+ numerical parameters
+
+        All numerical parameter values have to be scalar and numeric
+
+        Returns a new SeqsDataFrame
+        """
+        import numpy as np
+        data_out = self.copy()
+        columns = list(self.columns)
+        data_out = data_out.drop(columns=columns)
+        for (numparam, column), data in self.iterator():
+            # print('data data[1:]')
+            # print(type(data))
+            # print(data)
+            # print(data.iloc[1:])
+            # print(data.iloc[:-1])
+            for (x1, O1), (x2, O2) in zip(data.iloc[:-1].iteritems(),
+                                          data.iloc[1:].iteritems()):
+                # idx = 
+                # data_out.loc[idx] = np.abs(func(O1, O2)*x2/(x2-x1))
+                try:
+                    dat = np.abs(func(O1, O2)*x2/(x2-x1))
+                    # print('dat', dat)
+                except TypeError:
+                    dat = np.nan
+                data_out.loc[((numparam, x1), str(column)+'_conv')] = dat
+        return data_out
 
     def plot_(self, outfile, logx=False, logy=False, grid=False,
               param_panda=None):
@@ -152,6 +205,17 @@ class SeqsDataFrame(pd.DataFrame):
                         param_series = param_panda.loc[(numparam)]
                         string = ' '.join(extract_interesting_vars(param_series, numparam))
                         ax.text(-0.1, 1.05, string, transform=ax.transAxes)
+
+
+def iterate_seqs(seqsnew, varvals):
+    for nameval, seq_lists in seqsnew.items():
+        for idx, seq_list in enumerate(seq_lists):
+            vals = dict((dir_, try_to_float(varvals[nameval][dir_][0]))
+                        for dir_ in seq_list)
+            for dir_, val in sorted(vals.items(),
+                                    key=lambda x: try_to_float(x[1])):
+                numparam = is_it_tuple(nameval[0])
+                yield ((numparam, val), idx), dir_
 
 
 # def import_from_double_var(double_var, varvals):
@@ -252,3 +316,15 @@ def try_to_float(str_):
         return float(str_)
     except (ValueError, TypeError):
         return str(str_)
+
+
+def make_a_seq_panda(dict_w_params):
+    """ Convenience function for finding sequences of data, and putting them
+ in a Pandas structure """
+    analyse.dictdiff(dict_w_params)
+    changedsparams = analyse.ChangedParams(dict_w_params)
+    varvals, pairs = changedsparams.groupby_varname()
+    connected = analyse.find_connected_components(pairs)
+    seqs = analyse.select_by_key_len(connected, length=1)
+    panda_data = SeqsDataFrame().import_from_seq_new(seqs, varvals)
+    return panda_data

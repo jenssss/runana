@@ -179,6 +179,30 @@ class ChangedParams(dict):
         return varvalues, pairs
 
 
+def groupby_params(dict_w_params, params):
+    """ Groups `dict_w_params` according the given set of parameters. This
+ can be used to e.g. seperate physical from numerical parameters. """
+    grouped_dict = {}
+    for key, item in dict_w_params.items():
+        item_copy = item.copy()
+        index_dict = {}
+        for param in params:
+            if param in item_copy:
+                index_dict[param] = item_copy[param]
+                del item_copy[param]
+        index_tuple = tuple((key, index_dict[key])
+                            for key in sorted(index_dict))
+        grouped_dict.setdefault(index_tuple, {}).update({key: item_copy})
+    return grouped_dict
+
+
+def remove_nested_dict_keys(dict_w_params, remove_keys=[]):
+    for dict_ in dict_w_params.values():
+        for key in remove_keys:
+            if key in dict_:
+                del dict_[key]
+
+
 def select_by_key_len(connected, length=1):
     return dict((key, list_) for key, list_ in connected.items()
                 if len(key) == length)

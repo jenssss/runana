@@ -114,7 +114,7 @@ def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f, **kwargs):
             with open(stderr_f, 'w') as stderr_file:
                 try:
                     with open(stdout_f.split('.')[0]+'.cmd', 'w') as cmd_file:
-                        cmd_file.write(' '.join([program]+cmdargs))
+                        cmd_file.write(' '.join([program]+cmdargs)+'\n')
                     with open(stdout_f.split('.')[0]+'.time', 'w') as time_file:
                         with print_time(time_file):
                             retcode = call([program]+cmdargs, stdin=input_file,
@@ -224,14 +224,15 @@ def get_subdirs(a_dir='./'):
             if path.isdir(path.join(a_dir, name))]
 
 
-def generate_run_ID(work_dir):
+def generate_run_ID(work_dir, invalid_IDs=[]):
     subdirs = get_subdirs(work_dir)
     ID = 1
     while True:
-        if str(ID) in subdirs:
+        strID = str(ID)
+        if strID in subdirs or strID in invalid_IDs:
             ID = ID+1
         else:
-            return str(ID)
+            return strID
 
 
 def make_run_dirs(ScratchBase, LScratchBase):
@@ -613,6 +614,14 @@ def make_run_string(replacers):
     return str(replacers)
 
 
+def float_also_array(varvalue):
+    try:
+        varvalue_f = float(varvalue)
+    except TypeError:
+        varvalue_f = varvalue[0]
+    return varvalue_f
+
+
 def auto_converge_var(var_name, var, replacements, dirs, inp_file, programs, conv_crit):
     data_read = conv_crit.data_read
     prevdirID = getattr(var, 'dirID', None)
@@ -630,10 +639,14 @@ def auto_converge_var(var_name, var, replacements, dirs, inp_file, programs, con
             with cwd(path.join(dirs.local_scratch_base, dirID)):
                 O2 = data_read()
             yield_diff = conv_crit.conv_func(O1,O2,
-                                             float(varvalue_prev),
-                                             float(varvalue))
-        print('{: <10.10}\t {:.2f}\t {:.2e}\t {}\t {}'.format(var_name[1], varvalue,
-                                                              yield_diff, iteration, dirID))
+                                             float_also_array(varvalue_prev),
+                                             float_also_array(varvalue))
+        try:
+            print('{: <10.10}\t {:.2f}\t {:.2e}\t {}\t {}'.format(var_name[1], varvalue,
+                                                                  yield_diff, iteration, dirID))
+        except ValueError:
+            print('{: <10.10}\t {}\t {:.2e}\t {}\t {}'.format(var_name[1], varvalue,
+                                                                  yield_diff, iteration, dirID))
         if (abs(yield_diff) < conv_crit.eps):
             break
         prevdirID = dirID
@@ -650,8 +663,8 @@ def auto_conv_sub(chain_iters,replacers, dirs, inp_file, programs, conv_crit, au
 
 
 def auto_conv(programs, inp_file, dirs, conv_crit, chain_iters,
-               product_iters={}, just_replace={},
-               auto_converge_var=auto_converge_var, auto_conv_sub=auto_conv_sub):
+              product_iters={}, co_iters={}, just_replace={},
+              auto_converge_var=auto_converge_var, auto_conv_sub=auto_conv_sub):
     """ Run programs until converged or chain_iters is exhausted.
 
     :param list programs: List of strings with names of programs. Should contain absolute paths. Could alternately contain functions
@@ -667,14 +680,17 @@ def auto_conv(programs, inp_file, dirs, conv_crit, chain_iters,
 
     :param dict product_iters: Like `chain_iters`, but runs all combinations
 
+    :param dict co_iters: Runs with several parameters changing simultanously
+
     :param bool use_stdin: send in the content of the filtered input file through stdin rather passing the name of the input file as the first command line argument
     """
     # :param dict just_replace: Entries of the form {'Name of parameter':*value to replace with*}
     # :param str filter_func: Which filter function to use. Options are listed as keys in the INPUT_FILE_FILTERS dictionary
     dirs = check_dirs(dirs)
     inp_file = path.abspath(inp_file)
-    results={}
+    results = {}
     for replacers in replace_iter_gen(product_iters=product_iters,
+                                      co_iters=co_iters,
                                       just_replace=just_replace):
         run_string = make_run_string(replacers)
         results[run_string] = auto_conv_sub(chain_iters,replacers, dirs, inp_file, programs,

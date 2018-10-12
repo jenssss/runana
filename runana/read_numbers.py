@@ -74,6 +74,12 @@ def read_column_from_file(fname, icolumn, pattern=''):
                     return word
 
 
+@ignore_missing_file
+def read_entire_file(fname):
+    with open(fname) as file_:
+        return file_.readlines()
+
+
 def lines_in_file_iterator(file_handle, pattern=''):
     for line in file_handle:
         if pattern in line:
