@@ -65,7 +65,7 @@ class SeqsDataFrame(pd.DataFrame):
         multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
                                   names=[seqsdf.numparam, seqsdf.numparamval])
         seqsdf.set_index(multiindx, inplace=True)
-        whatever_scalar = 0.1
+        whatever_scalar = 'lol'
         list_ = list(iterate_seqs(seqsnew, varvals))
         # for multi_idx, dir_ in iterate_seqs(seqsnew, varvals):
         for multi_idx, dir_ in list_:
@@ -74,17 +74,22 @@ class SeqsDataFrame(pd.DataFrame):
             # print('seqsdf:', seqsdf)
             # print('seqsdf.dtypes:', seqsdf.dtypes)
             # save_multi_idx = multi_idx
-        if list_:
-            seqsdf.loc[multi_idx] = 'lol'
+        # if list_:
+        #     seqsdf.loc[multi_idx] = 'lol'
             # print('astype')
             # print(save_multi_idx[1])
             # seqsdf.astype({save_multi_idx[1]: object}, copy=False)
         # print('seqsdf:', seqsdf)
         # print('seqsdf.dtypes:', seqsdf.dtypes)
         for multi_idx, dir_ in list_:
+            # It might seem strange to repeat the same command twice, and indeed it is
+            # It seems that pandas unpacks a tuple of length 1 first time its inserted,
+            # but not the second time...
+            seqsdf.loc[multi_idx] = dir_
             seqsdf.loc[multi_idx] = dir_
             # print('seqsdf:', seqsdf)
             # print('seqsdf.dtypes:', seqsdf.dtypes)
+            # print()
         # for nameval, seq_lists in seqsnew.items():
         #     for idx, seq_list in enumerate(seq_lists):
         #         vals = dict((dir_, try_to_float(varvals[nameval][dir_][0])) for dir_ in seq_list)

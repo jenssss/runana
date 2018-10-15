@@ -16,6 +16,10 @@ See the examples in the source
 Installation
 ============
 
+``runana`` can be installed from pypi::
+
+   $ pip install runana
+
 The latest version of ``runana`` can be installed from source::
 
    $ git clone https://github.com/jenssss/runana.git
