@@ -434,6 +434,7 @@ def execute(programs, input_file, dirs,
         dir_IDs.append(dir_ID)
     return dir_IDs
 
+
 def execute_lock_par(lock, parallel, *args, **kwargs):
     """ Convenience function for running execute with a lock and/or in parallel """
     execute_here = execute
@@ -441,19 +442,20 @@ def execute_lock_par(lock, parallel, *args, **kwargs):
         execute_here = parallel_wrap(parallel)(execute_here)
     if lock:
         execute_here = lock_wrap(lock)(execute_here)
-    return execute_here(*args,**kwargs)
+    return execute_here(*args, **kwargs)
 
-        
+
 def common_start(chain_iters, just_replace):
     """ Returns modified `chain_iters` and `just_replace` such that the
  calculations will start at the first value of each variable in chain_iter
     """
     chain_iters_out = chain_iters.copy()
     replacers = {}
-    for (key,elem) in chain_iters_out.items():
-        replacers[key] = elem.pop(0)
-    else:
-        elem.insert(0,replacers[key])
+    if len(chain_iters_out) > 0:
+        for (key, elem) in chain_iters_out.items():
+            replacers[key] = elem.pop(0)
+        else:
+            elem.insert(0, replacers[key])
     just_replace = just_replace.copy()
     just_replace.update(replacers)
     return chain_iters_out, just_replace

@@ -32,7 +32,8 @@ Get parameters
 
 .. autofunction:: runana.input_file_handling.read_positional_file
 
-		  
+.. autofunction:: runana.analyse.groupby_n_var_params
+
 
 Get other stuff
 """""""""""""""
@@ -62,7 +63,8 @@ This module requires the :py:mod:`pandas` package
 
 .. autofunction:: runana.analyse_pandas.return_dict_element
 
-		  
+.. autofunction:: runana.analyse_pandas.make_a_seq_panda		  
+
 		  
 Read numbers API
 ----------------

@@ -27,6 +27,7 @@ def patch_from_tupled_dict(tupled_dict):
     patch = {}
     for replace_this, replace_val in tupled_dict.items():
         group, field = replace_this
+        group, field = group.lower(), field.lower()
         gdict = patch.get(group, {})
         gdict.update({field: replace_val})
         patch[group] = gdict

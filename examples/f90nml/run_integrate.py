@@ -2,32 +2,42 @@
 from __future__ import print_function
 from os import path, getcwd
 
-from runana import run
+from runana.run import execute, print_time, generate_list
 
-scratch_base = path.expanduser('~/test_run/runana/integrate_test')
 
-nvar_values = 10
-some_iters = {('nlIntegrate', 'npoints'): run.generate_list(
-    start=10, incr=10, incr_func='add', nvalues=nvar_values),
-              # ('nlGroup2', 'third_variable'): ['a','b','c']
-}
-
-chain_iters = some_iters
-
-input_file = 'config.nml'
-
-programs = ['integrate_test.py',]
-programs = [path.join(getcwd(), program) for program in programs]
-
-print('Running in ', scratch_base)
-
-with run.print_time():
-    run.execute(programs, input_file, scratch_base, chain_iters=chain_iters)
+def main():
+    input_file = 'config.nml'
     
-with open('latest_run_dir.txt','w') as file_:
-    file_.write(scratch_base)
-
-import analyse_integrate
-analyse_integrate.run_analysis(scratch_base)
-
+    chain_iters = setup_replacers()
     
+    scratch_base = path.expanduser('~/test_run/runana/integrate_test')
+    
+    programs = setup_programs()
+
+    print('Running in ', scratch_base)
+
+    with print_time():
+        execute(programs, input_file, scratch_base,
+                    chain_iters=chain_iters)
+
+    with open('latest_run_dir.txt','w') as file_:
+        file_.write(scratch_base)
+
+
+def setup_programs():
+    programs = ['integrate_test.py',]
+    programs = [path.join(getcwd(), program) for program in programs]
+    return programs
+
+
+def setup_replacers():
+    nvar_values = 10
+    chain_iters = {('nlIntegrate', 'npoints'): generate_list(
+        start=10, incr=10, incr_func='add', nvalues=nvar_values),
+                  # ('nlGroup2', 'third_variable'): ['a','b','c']
+    }
+    return chain_iters
+
+
+if __name__ == "__main__":
+    main()

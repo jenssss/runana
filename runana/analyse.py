@@ -1,4 +1,3 @@
-#!/usr/bin/python
 from os import path
 from functools import partial
 from collections import deque
@@ -323,3 +322,15 @@ def conso(s):
         else:
             r.append(x)
     return r
+
+
+def groupby_n_var_params(dict_w_params, n_var_params=1):
+    """ Convenience function for finding sets of data for which
+ `n_var_params` parameters are changing """
+    dict_w_params = dict_w_params.copy()
+    dictdiff(dict_w_params)
+    changedsparams = ChangedParams(dict_w_params)
+    varvals, pairs = changedsparams.groupby_varname()
+    connected = find_connected_components(pairs)
+    nseqs = select_by_key_len(connected, length=n_var_params)
+    return nseqs, varvals

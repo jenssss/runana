@@ -13,45 +13,11 @@ def run_analysis(workdir):
 
     dict_w_parameters.diff()
 
-
-    changedsparams = analyse.ChangedParams(dict_w_parameters)
-    varvals, pairs = changedsparams.groupby_varname()
-    pprint(changedsparams)
-    pprint(varvals)
-    pprint(pairs)
-    # pprint(dict(((tuple(varname[1] for varname in key), list_) for key, list_ in varvals.items())))
-    # pprint(dict(((tuple(varname[1] for varname in key), list_) for key, list_ in pairs.items())))
-
-    connected = analyse.find_connected_components(pairs)
-    pprint(connected)
-    # pprint(dict(((tuple(varname[1] for varname in key), list_) for key, list_ in connected.items())))
-
-    pprint(varvals)
-    double_var = dict((key, list_) for key, list_ in connected.items()
-                      if len(key) == 2)
-    pprint(double_var)
-    print(analyse_pandas.import_from_double_var(double_var, varvals))
-
-    # raise SystemExit
-
-    seqs = analyse.Seqs(dict_w_parameters)
-    print('seqs')
-    pprint(seqs)
-
-    seqs_new  = analyse.select_by_key_len(connected, length=1)
-    # seqs_new = dict((key, list_) for key, list_ in connected.items()
-    #                 if len(key) == 1)
-    print('seqs_new')
-    pprint(seqs_new)
-    pprint(analyse.select_by_key_len(varvals, length=1))
-
-    panda_data_new = analyse_pandas.SeqsDataFrame().import_from_seq_new(seqs_new, varvals)
-    print(panda_data_new)
-
-    panda_data = analyse_pandas.SeqsDataFrame().import_from_seq(seqs)
+    panda_data = make_a_seq_panda(dict_w_params):
     print(panda_data)
 
-    read_var = analyse.make_collector_function(workdir,read_numbers.read_number_from_file,
+    read_var = analyse.make_collector_function(workdir,
+                                               read_numbers.read_number_from_file,
                                                fname='example.stdout', inumber=1)
 
     panda_var = panda_data.applymap(read_var)
@@ -67,9 +33,7 @@ def run_analysis(workdir):
                     logy=False, param_panda=param_panda)
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     with open('latest_run_dir.txt') as file_:
         workdir = file_.read()
-    run_analysis(
-        workdir=workdir
-    )
+    run_analysis(workdir=workdir)

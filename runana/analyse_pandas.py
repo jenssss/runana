@@ -42,24 +42,7 @@ class SeqsDataFrame(pd.DataFrame):
             for (numparamvalue, elem) in dat.iteritems():
                 yield ((numparam, numparamvalue), column), elem
 
-    def import_from_seq(self, seqs, inplace=False):
-        """Converts the seqs object into a SeqsDataFrame"""
-        seqsdf = self if inplace else self.copy()
-        multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
-                                  names=[seqsdf.numparam, seqsdf.numparamval])
-        seqsdf.set_index(multiindx, inplace=True)
-        whatever_scalar = 0.1
-        for key, indx, seq_list in seqs.iterator():
-            for numparamval in sorted(seq_list, key=try_to_float):
-                run_index = seq_list[numparamval]
-                numparamval = try_to_float(numparamval)
-                numparam = is_it_tuple(key)
-                seqsdf.loc[(numparam, numparamval), indx] = whatever_scalar
-                seqsdf.loc[(numparam, numparamval), indx] = run_index
-        if not inplace:
-            return seqsdf
-
-    def import_from_seq_new(self, seqsnew, varvals, inplace=False):
+    def import_from_seq(self, seqsnew, varvals, inplace=False):
         """Converts the seqs object into a SeqsDataFrame"""
         seqsdf = self if inplace else self.copy()
         multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
@@ -67,36 +50,14 @@ class SeqsDataFrame(pd.DataFrame):
         seqsdf.set_index(multiindx, inplace=True)
         whatever_scalar = 'lol'
         list_ = list(iterate_seqs(seqsnew, varvals))
-        # for multi_idx, dir_ in iterate_seqs(seqsnew, varvals):
         for multi_idx, dir_ in list_:
-            # print('dir:', dir_)
             seqsdf.loc[multi_idx] = whatever_scalar
-            # print('seqsdf:', seqsdf)
-            # print('seqsdf.dtypes:', seqsdf.dtypes)
-            # save_multi_idx = multi_idx
-        # if list_:
-        #     seqsdf.loc[multi_idx] = 'lol'
-            # print('astype')
-            # print(save_multi_idx[1])
-            # seqsdf.astype({save_multi_idx[1]: object}, copy=False)
-        # print('seqsdf:', seqsdf)
-        # print('seqsdf.dtypes:', seqsdf.dtypes)
-        for multi_idx, dir_ in list_:
-            # It might seem strange to repeat the same command twice, and indeed it is
-            # It seems that pandas unpacks a tuple of length 1 first time its inserted,
-            # but not the second time...
+        # for multi_idx, dir_ in list_:
+# It might seem strange to repeat the same command twice, and indeed it is
+# It seems that pandas unpacks a tuple of length 1 first time its inserted,
+# but not the second time...
             seqsdf.loc[multi_idx] = dir_
             seqsdf.loc[multi_idx] = dir_
-            # print('seqsdf:', seqsdf)
-            # print('seqsdf.dtypes:', seqsdf.dtypes)
-            # print()
-        # for nameval, seq_lists in seqsnew.items():
-        #     for idx, seq_list in enumerate(seq_lists):
-        #         vals = dict((dir_, try_to_float(varvals[nameval][dir_][0])) for dir_ in seq_list)
-        #         for dir_, val in sorted(vals.items(), key=lambda x: try_to_float(x[1])):
-        #             numparam = is_it_tuple(nameval[0])
-        #             seqsdf.loc[(numparam, val), idx] = whatever_scalar
-        #             seqsdf.loc[(numparam, val), idx] = dir_
         if not inplace:
             return seqsdf
 
@@ -326,10 +287,6 @@ def try_to_float(str_):
 def make_a_seq_panda(dict_w_params):
     """ Convenience function for finding sequences of data, and putting them
  in a Pandas structure """
-    analyse.dictdiff(dict_w_params)
-    changedsparams = analyse.ChangedParams(dict_w_params)
-    varvals, pairs = changedsparams.groupby_varname()
-    connected = analyse.find_connected_components(pairs)
-    seqs = analyse.select_by_key_len(connected, length=1)
-    panda_data = SeqsDataFrame().import_from_seq_new(seqs, varvals)
+    seqs, varvals = analyse.groupby_n_var_params(dict_w_params, 1)
+    panda_data = SeqsDataFrame().import_from_seq(seqs, varvals)
     return panda_data
