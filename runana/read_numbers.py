@@ -149,7 +149,23 @@ def read_file_super_blocks(fname):
 @ignore_missing_file
 def read_file_sev_blocks_new(fname):
     with open(fname, 'r') as fil:
-        lines = [[num_c(field) for field in line.split()] for line in fil]
+        lines = [[num_c(field) for field in line.split()] for line in fil
+                 if not line.lstrip()[:1] == '#']
+    return split_list(lines)
+
+
+@ignore_missing_file
+def read_file_sev_blocks_float(fname):
+    with open(fname, 'r') as fil:
+        lines = [[float(field) for field in line.split()] for line in fil
+                 if not line.lstrip()[:1] == '#']
+    return split_list(lines)
+
+
+@ignore_missing_file
+def read_file_sev_blocks_float_no_comment(fname):
+    with open(fname, 'r') as fil:
+        lines = [[float(field) for field in line.split()] for line in fil]
     return split_list(lines)
 
 
