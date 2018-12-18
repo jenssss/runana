@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from os import getcwd
+from os import getcwd, rename
 from os.path import splitext
 from os.path import join as pjoin
 from contextlib import contextmanager
@@ -10,7 +10,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.backends.backend_svg import FigureCanvasSVG
 from matplotlib.figure import Figure
 
-from run import makedir
+from runana.run import makedir
 
 
 class SvgFiles(object):
@@ -20,6 +20,7 @@ class SvgFiles(object):
         basedir, file_ext = splitext(outfile)
         basedir = pjoin(getcwd(), basedir)
         makedir(basedir)
+        self.outfile = outfile
         self.basedir = basedir
         self.file_ext = file_ext
         self.args = args
@@ -29,6 +30,11 @@ class SvgFiles(object):
     def savefig(self, figure, **kwargs):
         try:
             fname = pjoin(self.basedir, "{}.svg".format(self.page))
+            if self.page == 1:
+                fname = self.outfile
+            elif self.page == 2:
+                rename(self.outfile,
+                       pjoin(self.basedir, "{}.svg".format(self.page)))
             orig_canvas = figure.canvas
             figure.canvas = FigureCanvasSVG(figure)
             figure.savefig(fname, format="svg", **kwargs)

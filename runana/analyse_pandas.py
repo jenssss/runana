@@ -290,3 +290,11 @@ def make_a_seq_panda(dict_w_params):
     seqs, varvals = analyse.groupby_n_var_params(dict_w_params, 1)
     panda_data = SeqsDataFrame().import_from_seq(seqs, varvals)
     return panda_data
+
+
+def drop_boring_columns(df):
+    """ Drops all columns in `df` that has only 1 or less unique values.
+Returns a new DataFrame """
+    nunique = df.apply(pd.Series.nunique)
+    cols_to_drop = nunique[nunique <= 1].index
+    return df.drop(cols_to_drop, axis=1)
