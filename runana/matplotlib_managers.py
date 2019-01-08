@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from os import getcwd, rename
-from os.path import splitext
+from os.path import splitext, abspath, split
 from os.path import join as pjoin
 from contextlib import contextmanager
 
@@ -18,7 +18,8 @@ class SvgFiles(object):
     """
     def __init__(self, outfile, *args, **kwargs):
         basedir, file_ext = splitext(outfile)
-        basedir = pjoin(getcwd(), basedir)
+        basedir = abspath(pjoin(getcwd(), basedir))
+        print("basedir", basedir)
         makedir(basedir)
         self.outfile = outfile
         self.basedir = basedir
@@ -31,10 +32,10 @@ class SvgFiles(object):
         try:
             fname = pjoin(self.basedir, "{}.svg".format(self.page))
             if self.page == 1:
-                fname = self.outfile
+                fname = pjoin(split(self.basedir)[0], self.outfile)
             elif self.page == 2:
-                rename(self.outfile,
-                       pjoin(self.basedir, "{}.svg".format(self.page)))
+                rename(pjoin(split(self.basedir)[0], self.outfile),
+                       pjoin(self.basedir, "{}.svg".format(1)))
             orig_canvas = figure.canvas
             figure.canvas = FigureCanvasSVG(figure)
             figure.savefig(fname, format="svg", **kwargs)
