@@ -20,6 +20,7 @@ class IndivFiles(object):
         basedir, file_ext = splitext(outfile)
         basedir = abspath(pjoin(getcwd(), basedir))
         makedir(basedir)
+        self.cwd = getcwd()
         self.outfile = outfile
         self.basedir = basedir
         self.file_ext = file_ext
@@ -36,11 +37,11 @@ class IndivFiles(object):
     def savefig(self, figure, **kwargs):
         try:
             fname = pjoin(self.basedir, "{}{}".format(self.page,
-                                                       self.file_ext))
+                                                      self.file_ext))
             if self.page == 1:
-                fname = pjoin(split(self.basedir)[0], self.outfile)
+                fname = pjoin(self.cwd, self.outfile)
             elif self.page == 2:
-                rename(pjoin(split(self.basedir)[0], self.outfile),
+                rename(pjoin(self.cwd, self.outfile),
                        pjoin(self.basedir, "{}{}".format(1,
                                                           self.file_ext)))
             orig_canvas = figure.canvas
@@ -64,7 +65,10 @@ class webmMovie(IndivFiles):
         self.outfile_video = outfile
         self.bitrate = kwargs.pop("bitrate", "1M")
         self.reverse = kwargs.pop("reverse", True)
-        outfile = outfile.replace(".webm", ".png")
+        __, file_ext = splitext(self.outfile_video)
+        self.file_ext = file_ext
+        for file_ext in [".webm", ".mp4"]:
+            outfile = outfile.replace(file_ext, ".png")
         super(webmMovie, self).__init__(outfile, *args, **kwargs)
 
     def print_args(self, args, fname, mode="w"):
@@ -74,7 +78,12 @@ class webmMovie(IndivFiles):
     def close(self):
         from subprocess import call
         outfile_video = self.outfile_video
-        options = ["-y", "-c:v", "libvpx-vp9", "-b:v", self.bitrate]
+        if self.file_ext == ".webm":
+            options = ["-y", "-c:v", "libvpx-vp9", "-b:v", self.bitrate]
+        elif self.file_ext == ".mp4":
+            options = ["-y", "-c:v", "libx246", "-b:v", self.bitrate]
+        else:
+            raise ValueError("Unsupported file_ext: " + self.file_ext)
         args = ["ffmpeg"]
         args.extend(["-i", pjoin(self.basedir, "%d.png")])
         # lines = []
@@ -108,8 +117,8 @@ class webmMovie(IndivFiles):
         # args.extend([item for sub in nested_list for item in sub])
         args.extend(options)
         args.append(outfile_video)
-        call(args)
         self.print_args(args, "ffmpeg_args.txt")
+        call(args)
         # with open(pjoin(self.basedir, "ffmpeg_args.txt"), "w") as file_:
         #     file_.write(" ".join(args+["\n"]))
         # if self.reverse:
@@ -151,7 +160,7 @@ class plot_manager(object):
             self.pp = PdfPages(self.outfile, *self.args, **self.kwargs)
         elif file_ext == ".svg" or file_ext == ".png":
             self.pp = IndivFiles(self.outfile, *self.args, **self.kwargs)
-        elif file_ext == ".webm":
+        elif file_ext == ".webm" or file_ext == ".mp4":
             self.pp = webmMovie(self.outfile, *self.args, **self.kwargs)
         else:
             raise ValueError("Unknown file extension {}".format(file_ext))

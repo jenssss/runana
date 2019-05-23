@@ -146,6 +146,20 @@ def read_input_files_f90nml(patterns=['*.nml'],
     import glob
     filenames = list(chain(*(glob.glob(pattern)
                              for pattern in string_or_iterable(patterns))))
+    return read_list_of_input_files(filenames,
+                                    read_one_file=read_one_file)
+    # dicts = dict((filename, read_one_file(filename))
+    #              for filename in filenames)
+    # return superset_collisions(dicts)
+
+
+def read_list_of_input_files(filenames,
+                             read_one_file=read_and_flatten_namelist):
+    """ Read the all files in list `filenames` with :func:`f90nml.read`
+
+    The namelists are flattened and supersetted, the resulting dict is
+    returned
+    """
     dicts = dict((filename, read_one_file(filename))
                  for filename in filenames)
     return superset_collisions(dicts)

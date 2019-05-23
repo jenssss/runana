@@ -21,16 +21,22 @@ def collecting_loop_recursive(dir_, read_func):
                 yield (subdir, )+dirs, vals
 
 
-def read_input_files(workdir, read_func=read_input_files_f90nml):
+def read_input_files(workdir, indices=[], read_func=read_input_files_f90nml):
     """ Recursively searches through all subdirectories of `workdir`.
 `read_func` is run in any directory containing a file named 'hostname.txt',
 and the result is stored in a :class:`ParamDict`, with the path in tuple-form
 as key. This :class:`ParamDict` is returned.
+    If `indices` is given as a non-empty list, the indices in this argument
+will be used instead of recursive search
 
     Subdirectories of a directory with a 'hostname.txt' file are not searched.
     """
     paramdict = ParamDict()
-    paramdict.read(workdir, read_func=read_func)
+    if indices:
+        paramdict.from_list_of_indices(workdir, indices,
+                                       read_func=read_func)
+    else:
+        paramdict.read(workdir, read_func=read_func)
     return paramdict
 
 
@@ -39,6 +45,12 @@ class ParamDict(dict):
     def read(self, workdir, read_func=read_input_files_f90nml):
         for index, result in collecting_loop_recursive(workdir, read_func):
             self[index] = result
+
+    def from_list_of_indices(self, workdir, indices,
+                             read_func=read_input_files_f90nml):
+        for index in indices:
+            with cwd(path.join(workdir, *index)):
+                self[index] = read_func()
 
     def diff(self):
         """ Call :func:`dictdiff` on `ParamDict` object """

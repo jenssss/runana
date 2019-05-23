@@ -189,7 +189,8 @@ def name_stdout(program, add=''):
     else:
         prog = program[0]
     stdouts = prog.split('/')[-1]
-    stdouts = stdouts.split('.')[0].split('_')[0]+add+'.std'
+    # stdouts = stdouts.split('.')[0].split('_')[0]+add+'.std'
+    stdouts = stdouts.split('.')[0]+add+'.std'
     return stdouts+'out', stdouts+'err'
 
 
@@ -224,19 +225,21 @@ def get_subdirs(a_dir='./'):
             if path.isdir(path.join(a_dir, name))]
 
 
-def generate_run_ID(work_dir, invalid_IDs=[]):
+def generate_run_ID(work_dir, invalid_IDs=[], prepend=""):
     subdirs = get_subdirs(work_dir)
     ID = 1
     while True:
         strID = str(ID)
+        if prepend:
+            strID = prepend + strID
         if strID in subdirs or strID in invalid_IDs:
             ID = ID+1
         else:
             return strID
 
 
-def make_run_dirs(ScratchBase, LScratchBase):
-    ID = generate_run_ID(ScratchBase)
+def make_run_dirs(ScratchBase, LScratchBase, **gen_ID_kwargs):
+    ID = generate_run_ID(ScratchBase, **gen_ID_kwargs)
     work_dir = path.join(ScratchBase, ID)
     lwork_dir = path.join(LScratchBase, ID)
     makedir(work_dir)
@@ -280,11 +283,12 @@ def save_info_in_file(filename, command, copy_back=None):
 
 
 def calc_all(replacements, dirs, inp_file, programs,
-             print_finish=True, filter_func='f90nml', use_stdin=False):
+             print_finish=True, filter_func='f90nml', use_stdin=False,
+             **gen_ID_kwargs):
 
     base_dir = dirs.scratch_base
     dirID, work_dir, lwork_dir = lock_wrap_retry(base_dir, nretries=10, wait=0.1)(
-        make_run_dirs)(base_dir, dirs.local_scratch_base)
+        make_run_dirs)(base_dir, dirs.local_scratch_base, **gen_ID_kwargs)
 
     inp_file_local = path.join(work_dir, path.basename(inp_file))
     input_file_handling.INP_FILE_FILTERS[filter_func](inp_file, inp_file_local, replacements)
@@ -378,7 +382,7 @@ def replace_iter_gen(product_iters={}, chain_iters={}, co_iters={},
 
 
 def check_dirs(dirs):
-    if not isinstance(dirs,Dirs):
+    if not isinstance(dirs, Dirs):
         dirs = Dirs(dirs)
     return dirs
 

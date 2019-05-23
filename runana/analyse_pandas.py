@@ -45,7 +45,7 @@ class SeqsDataFrame(pd.DataFrame):
     def import_from_seq(self, seqsnew, varvals, inplace=False):
         """Converts the seqs object into a SeqsDataFrame"""
         seqsdf = self if inplace else self.copy()
-        multiindx = pd.MultiIndex(levels=[[], []], labels=[[], []],
+        multiindx = pd.MultiIndex(levels=[[], []], codes=[[], []],
                                   names=[seqsdf.numparam, seqsdf.numparamval])
         seqsdf.set_index(multiindx, inplace=True)
         whatever_scalar = 'lol'
