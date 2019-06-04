@@ -66,7 +66,7 @@ class webmMovie(IndivFiles):
         self.bitrate = kwargs.pop("bitrate", "1M")
         self.reverse = kwargs.pop("reverse", True)
         __, file_ext = splitext(self.outfile_video)
-        self.file_ext = file_ext
+        self.file_ext_video = file_ext
         for file_ext in [".webm", ".mp4"]:
             outfile = outfile.replace(file_ext, ".png")
         super(webmMovie, self).__init__(outfile, *args, **kwargs)
@@ -78,12 +78,12 @@ class webmMovie(IndivFiles):
     def close(self):
         from subprocess import call
         outfile_video = self.outfile_video
-        if self.file_ext == ".webm":
+        if self.file_ext_video == ".webm":
             options = ["-y", "-c:v", "libvpx-vp9", "-b:v", self.bitrate]
-        elif self.file_ext == ".mp4":
+        elif self.file_ext_video == ".mp4":
             options = ["-y", "-c:v", "libx246", "-b:v", self.bitrate]
         else:
-            raise ValueError("Unsupported file_ext: " + self.file_ext)
+            raise ValueError("Unsupported file_ext: " + self.file_ext_video)
         args = ["ffmpeg"]
         args.extend(["-i", pjoin(self.basedir, "%d.png")])
         # lines = []

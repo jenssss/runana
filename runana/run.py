@@ -108,29 +108,53 @@ def replace_string_in_file(fileName, text_to_search, text_to_replace):
         file_handle.write(filedata)
 
 
-def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f, **kwargs):
-    with OpenWithNone(stdin_f, 'r') as input_file:
-        with open(stdout_f, 'w') as stdout_file:
-            with open(stderr_f, 'w') as stderr_file:
-                try:
-                    with open(stdout_f.split('.')[0]+'.cmd', 'w') as cmd_file:
-                        cmd_file.write(' '.join([program]+cmdargs)+'\n')
-                    with open(stdout_f.split('.')[0]+'.time', 'w') as time_file:
-                        with print_time(time_file):
-                            retcode = call([program]+cmdargs, stdin=input_file,
-                                           stdout=stdout_file, stderr=stderr_file, **kwargs)
-                except Exception as e:
-                    print(e)
-                    print('program ', program)
-                    print('cmdargs', cmdargs)
-                    print('stdin   ', stdin_f)
-                    print('stdout  ', stdout_f)
-                    print('stderr  ', stderr_f)
-                    # print 'kwargs  ', kwargs
-                    print(getcwd())
-                    raise
-    replace_string_in_file(stdout_f, '\r', '\n')
-    return retcode
+def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f,
+                run=True, cmd_prepend="",
+                **kwargs):
+    """ Runs `program` with `cmdargs` using `subprocess.call`.
+    :param str stdin_f: File from which to take standard input
+    :param str stdout_f: File in which to put standard output
+    :param str stderr_f: File in which to put standard error
+    :param bool run: Whether to actually run `program`
+    If `True` the program return code is returned.
+    If false a string pointing to the script which will run
+ the program is returned
+    :param str cmd_prepend: Put in the beginning of the bash script
+ """
+    time_file_name = stdout_f.split('.')[0]+'.time'
+    cmd_file_name = stdout_f.split('.')[0]+'.cmd'
+    with open(cmd_file_name, 'w') as cmd_file:
+        cmd = ' '.join([program]+cmdargs)
+        time_cmd = "/usr/bin/time -o {time_file}".format(time_file=time_file_name)
+        cmd = "{time_cmd} {cmd} 1> {stdout} 2> {stderr} \n".format(time_cmd=time_cmd,
+                                                                   cmd=cmd,
+                                                                   stdout=stdout_f,
+                                                                   stderr=stderr_f)
+        cmd = cmd_prepend + cmd
+        cmd_file.write(cmd)
+    if run:
+        with OpenWithNone(stdin_f, 'r') as input_file:
+            with open(stdout_f, 'w') as stdout_file:
+                with open(stderr_f, 'w') as stderr_file:
+                    try:
+                        with open(time_file_name, 'w') as time_file:
+                            with print_time(time_file):
+                                retcode = call([program]+cmdargs, stdin=input_file,
+                                               stdout=stdout_file, stderr=stderr_file, **kwargs)
+                    except Exception as e:
+                        print(e)
+                        print('program ', program)
+                        print('cmdargs', cmdargs)
+                        print('stdin   ', stdin_f)
+                        print('stdout  ', stdout_f)
+                        print('stderr  ', stderr_f)
+                        # print 'kwargs  ', kwargs
+                        print(getcwd())
+                        raise
+        replace_string_in_file(stdout_f, '\r', '\n')
+        return retcode
+    else:
+        return cmd_file_name
 
 
 from subprocess import Popen, PIPE
@@ -284,6 +308,7 @@ def save_info_in_file(filename, command, copy_back=None):
 
 def calc_all(replacements, dirs, inp_file, programs,
              print_finish=True, filter_func='f90nml', use_stdin=False,
+             use_inp_file=True,
              **gen_ID_kwargs):
 
     base_dir = dirs.scratch_base
@@ -297,7 +322,8 @@ def calc_all(replacements, dirs, inp_file, programs,
         save_info_in_file('hostname.txt', 'hostname', work_dir)
         save_info_in_file('started.txt', 'date', work_dir)
         inp_file_relative = path.relpath(inp_file_local, lwork_dir)
-        run_core(programs, inp_file_relative, use_stdin=use_stdin)
+        run_core(programs, inp_file_relative, use_stdin=use_stdin,
+                 use_inp_file=use_inp_file)
         copy_to_scratch(work_dir, dirs.copy_2_scratch)
         save_info_in_file('ended.txt', 'date', work_dir)
     if print_finish:
@@ -312,15 +338,22 @@ def is_it_tuple(it):
         return it
 
 
-def run_core(programs, inp_file_relative, use_stdin=False):
+def run_core(programs, inp_file_relative, use_stdin=False,
+             use_inp_file=True):
     for program in programs:
         if hasattr(program, '__call__'):
-            program(inp_file_relative)
-        else:
-            if use_stdin:
-                run_prog(program, [], stdin_f=inp_file_relative)
+            if use_inp_file:
+                program(inp_file_relative)
             else:
-                run_prog(program, [inp_file_relative])
+                program()
+        else:
+            if use_inp_file:
+                if use_stdin:
+                    run_prog(program, [], stdin_f=inp_file_relative)
+                else:
+                    run_prog(program, [inp_file_relative])
+            else:
+                run_prog(program)
 
 
 def add_to_fname(fname, add=''):
