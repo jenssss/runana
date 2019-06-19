@@ -64,7 +64,7 @@ class webmMovie(IndivFiles):
     def __init__(self, outfile, *args, **kwargs):
         self.outfile_video = outfile
         self.bitrate = kwargs.pop("bitrate", "1M")
-        self.reverse = kwargs.pop("reverse", True)
+        self.reverse = kwargs.pop("reverse", False)
         __, file_ext = splitext(self.outfile_video)
         self.file_ext_video = file_ext
         for file_ext in [".webm", ".mp4"]:
@@ -91,13 +91,14 @@ class webmMovie(IndivFiles):
         nfiles = self.page-1
         for i in range(nfiles):
             filename = pjoin(self.basedir, "{}.png".format(i+1))
-            filename2 = pjoin(self.basedir, "{}.png".format(2*nfiles-i))
-            from os import remove
-            from shutil import copy
-            from runana.run import ignored
-            with ignored(OSError):
-                remove(filename2)
-            copy(filename, filename2)
+            if self.reverse:
+                filename2 = pjoin(self.basedir, "{}.png".format(2*nfiles-i))
+                from os import remove
+                from shutil import copy
+                from runana.run import ignored
+                with ignored(OSError):
+                    remove(filename2)
+                copy(filename, filename2)
         # filenames = []
         # for i in range(self.page-1):
         #     filename = pjoin(self.basedir, "{}.png".format(i+1))
