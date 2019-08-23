@@ -604,9 +604,9 @@ INTERVALS = (
     )
 
 
-def display_time(seconds, granularity=2):
+def display_time(seconds, granularity=2, intervals=INTERVALS):
     result = []
-    for name, count in INTERVALS:
+    for name, count in intervals:
         value = seconds // count
         if value:
             seconds -= value * count
