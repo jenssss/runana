@@ -564,7 +564,8 @@ def parallel_wrap(parallel=None):
                 with multi_stuff(parallel, kwargs) as kwargs:
                     converged_parameters = fun(*args, **kwargs)
                     if converged_parameters:
-                        converged_parameters = map_nested_dicts(converged_parameters, lambda x: x.get())
+                        converged_parameters = list(map(lambda x: x.get(), converged_parameters))
+                        # converged_parameters = map_nested_dicts(converged_parameters, lambda x: x.get())
                 # converged_parameters = multi_stuff(parallel, fun, args, kwargs)
             return converged_parameters
         return call
@@ -605,6 +606,21 @@ INTERVALS = (
 
 
 def display_time(seconds, granularity=2, intervals=INTERVALS):
+    list_ = display_time_list(seconds, granularity=granularity,
+                              intervals=intervals)
+    return ', '.join(list_)
+    # result = []
+    # for name, count in intervals:
+    #     value = seconds // count
+    #     if value:
+    #         seconds -= value * count
+    #         if value == 1:
+    #             name = name.rstrip('s')
+    #         result.append("{0:.0f} {1}".format(value, name))
+    # return ', '.join(result[:granularity])
+
+
+def display_time_list(seconds, granularity=2, intervals=INTERVALS):
     result = []
     for name, count in intervals:
         value = seconds // count
@@ -613,7 +629,7 @@ def display_time(seconds, granularity=2, intervals=INTERVALS):
             if value == 1:
                 name = name.rstrip('s')
             result.append("{0:.0f} {1}".format(value, name))
-    return ', '.join(result[:granularity])
+    return result[:granularity]
 
 
 @contextmanager
