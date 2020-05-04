@@ -214,7 +214,7 @@ def name_stdout(program, add=''):
         prog = program[0]
     stdouts = prog.split('/')[-1]
     # stdouts = stdouts.split('.')[0].split('_')[0]+add+'.std'
-    stdouts = stdouts.split('.')[0]+add+'.std'
+    stdouts = stdouts+add+'.std'
     return stdouts+'out', stdouts+'err'
 
 
