@@ -121,8 +121,8 @@ def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f,
  the program is returned
     :param str cmd_prepend: Put in the beginning of the bash script
  """
-    time_file_name = stdout_f+'.time'
-    cmd_file_name = stdout_f+'.cmd'
+    time_file_name = '.'.join(stdout_f.split('.')[:-1])+'.time'
+    cmd_file_name = '.'.join(stdout_f.split('.')[:-1])+'.cmd'
     with open(cmd_file_name, 'w') as cmd_file:
         cmd = ' '.join([program]+cmdargs)
         time_cmd = "/usr/bin/time -o {time_file}".format(time_file=time_file_name)
