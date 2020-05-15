@@ -7,14 +7,26 @@ from runana.run import cwd, get_subdirs
 from runana.input_file_handling import read_input_files_f90nml, string_or_iterable, superset
 
 
-def collecting_loop_recursive(dir_, read_func):
+def collecting_loop_recursive(dir_, read_func,
+                              look_for_these=["hostname.txt"],
+                              ignore_these=["ignore"]):
+    """Collect information from runs.
+
+    Recursively locate directories under `dir_` containing any of the
+    files in `look_for_these`, but leaves out directories that contain
+    any files in `ignore_these`. In each of the located directories the
+    function `read_func` is run with no arguments (the working directory
+    is temporarily changed to the located directory).
+
+    """
     subdirs = get_subdirs(dir_)
     for subdir in subdirs or []:
         asubdir = path.join(dir_, subdir)
-        if path.exists(path.join(asubdir, 'hostname.txt')):
-            with cwd(asubdir):
-                value = read_func()
-            yield (subdir, ), value
+        if any(path.exists(path.join(asubdir, fname)) for fname in look_for_these):
+            if not any(path.exists(path.join(asubdir, fname)) for fname in ignore_these):
+                with cwd(asubdir):
+                    value = read_func()
+                yield (subdir, ), value
         else:
             for dirs, vals in collecting_loop_recursive(path.join(dir_, subdir),
                                                         read_func):
@@ -22,12 +34,15 @@ def collecting_loop_recursive(dir_, read_func):
 
 
 def read_input_files(workdir, indices=[], read_func=read_input_files_f90nml):
-    """ Recursively searches through all subdirectories of `workdir`.
-`read_func` is run in any directory containing a file named 'hostname.txt',
-and the result is stored in a :class:`ParamDict`, with the path in tuple-form
-as key. This :class:`ParamDict` is returned.
+    """ Read information from input files.
+
+    Recursively searches through all subdirectories of `workdir`.
+    `read_func` is run in any directory containing a file named 'hostname.txt',
+    and the result is stored in a :class:`ParamDict`, with the path in tuple-form
+    as key. This :class:`ParamDict` is returned.
+
     If `indices` is given as a non-empty list, the indices in this argument
-will be used instead of recursive search
+    will be used instead of recursive search
 
     Subdirectories of a directory with a 'hostname.txt' file are not searched.
     """
