@@ -53,7 +53,7 @@ class SeqsDataFrame(pd.DataFrame):
         for multi_idx, dir_ in list_:
             seqsdf.loc[multi_idx] = whatever_scalar
         # for multi_idx, dir_ in list_:
-# It might seem strange to repeat the same command twice, and indeed it is
+# It might seem strange to repeat the same command twice, and indeed it is.
 # It seems that pandas unpacks a tuple of length 1 first time its inserted,
 # but not the second time...
             seqsdf.loc[multi_idx] = dir_

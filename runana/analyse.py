@@ -1,6 +1,7 @@
-from os import path
-from functools import partial
 from collections import deque
+from math import isnan
+from functools import partial
+from os import path
 
 from runana.read_numbers import ignored
 from runana.run import cwd, get_subdirs
@@ -246,7 +247,7 @@ def find_diff_elements(dict1, dict2):
     for key, value1 in dict1.items():
         if key in dict2:
             value2 = dict2[key]
-            if value1 != value2:
+            if value1 != value2 and not isnan(value1) and not isnan(value2):
                 diffs[key] = (value1, value2)
         else:
             diffs[key] = (value1, None)
