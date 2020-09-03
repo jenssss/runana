@@ -28,7 +28,7 @@ OPERATIONS = {'add': add, 'mul': mul, 'div': div}
 
 @contextmanager
 def cwd(path):
-    """ Change working directory temporarily """
+    """ Contextmanager that changes working directory temporarily """
     oldpwd = getcwd()
     chdir(path)
     try:
@@ -109,9 +109,9 @@ def replace_string_in_file(fileName, text_to_search, text_to_replace):
 
 
 def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f,
-                run=True, cmd_prepend="",
+                run=True, cmd_prepend="", run_from_cmd=True,
                 **kwargs):
-    """ Runs `program` with `cmdargs` using `subprocess.call`.
+    """Runs `program` with `cmdargs` using `subprocess.call`.
     :param str stdin_f: File from which to take standard input
     :param str stdout_f: File in which to put standard output
     :param str stderr_f: File in which to put standard error
@@ -120,9 +120,12 @@ def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f,
     If false a string pointing to the script which will run
  the program is returned
     :param str cmd_prepend: Put in the beginning of the bash script
- """
+    :param bool run_from_cmd: Run `program` using the generated bash
+    script instead of running it directly
+
+    """
     time_file_name = '.'.join(stdout_f.split('.')[:-1])+'.time'
-    cmd_file_name = '.'.join(stdout_f.split('.')[:-1])+'.cmd'
+    cmd_file_name = '.'.join(stdout_f.split('.')[:-1])+'.sh'
     with open(cmd_file_name, 'w') as cmd_file:
         cmd = ' '.join([program]+cmdargs)
         time_cmd = "/usr/bin/time -o {time_file}".format(time_file=time_file_name)
@@ -133,24 +136,26 @@ def run_program(program, cmdargs, stdin_f, stdout_f, stderr_f,
         cmd = cmd_prepend + cmd
         cmd_file.write(cmd)
     if run:
-        with OpenWithNone(stdin_f, 'r') as input_file:
-            with open(stdout_f, 'w') as stdout_file:
-                with open(stderr_f, 'w') as stderr_file:
-                    try:
-                        with open(time_file_name, 'w') as time_file:
-                            with print_time(time_file):
-                                retcode = call([program]+cmdargs, stdin=input_file,
-                                               stdout=stdout_file, stderr=stderr_file, **kwargs)
-                    except Exception as e:
-                        print(e)
-                        print('program ', program)
-                        print('cmdargs', cmdargs)
-                        print('stdin   ', stdin_f)
-                        print('stdout  ', stdout_f)
-                        print('stderr  ', stderr_f)
-                        # print 'kwargs  ', kwargs
-                        print(getcwd())
-                        raise
+        with OpenWithNone(stdin_f, 'r') as input_file,  open(stdout_f, 'w') as stdout_file, open(stderr_f, 'w') as stderr_file:
+            if run_from_cmd:
+                retcode = call(["bash", cmd_file_name], **kwargs)
+            else:
+                try:
+                    with open(time_file_name, 'w') as time_file:
+                        with print_time(time_file):
+                            retcode = call([program]+cmdargs, stdin=input_file,
+                                           stdout=stdout_file, stderr=stderr_file, **kwargs)
+                except Exception as e:
+                    print(e)
+                    print('program ', program)
+                    print('cmdargs', cmdargs)
+                    print('stdin   ', stdin_f)
+                    print('stdout  ', stdout_f)
+                    print('stderr  ', stderr_f)
+                    # print 'kwargs  ', kwargs
+                    print(getcwd())
+                    raise
+                
         replace_string_in_file(stdout_f, '\r', '\n')
         return retcode
     else:
@@ -168,7 +173,7 @@ def run_program_print_output(program, cmdargs,
         with open(stdout_f, 'w', buffering=0) as stdout_file:
             with open(stderr_f, 'w', buffering=0) as stderr_file:
                 try:
-                    with open(stdout_f+'.cmd', 'w') as cmd_file:
+                    with open(stdout_f+'.sh', 'w') as cmd_file:
                         cmd_file.write(' '.join([program]+cmdargs))
                     if print_output:
                         # start_time = time()
