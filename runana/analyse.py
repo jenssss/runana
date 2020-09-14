@@ -242,12 +242,15 @@ def find_connected_components(pairs):
     return connected
 
 
+type_ignore_isnan = ignored(TypeError)(isnan)
+
+
 def find_diff_elements(dict1, dict2):
     diffs = {}
     for key, value1 in dict1.items():
         if key in dict2:
             value2 = dict2[key]
-            if value1 != value2 and not isnan(value1) and not isnan(value2):
+            if value1 != value2 and not type_ignore_isnan(value1) and not type_ignore_isnan(value2):
                 diffs[key] = (value1, value2)
         else:
             diffs[key] = (value1, None)
