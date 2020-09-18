@@ -126,7 +126,6 @@ def numpy_file_read(fname):
     return a
 
 
-@ignore_missing_file
 def read_file_sev_blocks_c(fname):
     with open(fname, 'r') as fil:
         blocks = [[[num_c(element) for element in line.split()]
@@ -136,7 +135,6 @@ def read_file_sev_blocks_c(fname):
     return blocks
 
 
-@ignore_missing_file
 def read_file_super_blocks(fname):
     with open(fname, 'r') as fil:
         blocks = [[[[num_c(element) for element in line.split()]
@@ -146,15 +144,14 @@ def read_file_super_blocks(fname):
     return blocks
 
 
-@ignore_missing_file
 def read_file_sev_blocks_new(fname):
     with open(fname, 'r') as fil:
         lines = [[num_c(field) for field in line.split()] for line in fil
                  if not line.lstrip()[:1] == '#']
-    return split_list(lines)
+    lines = split_list(lines)
+    return lines
 
 
-@ignore_missing_file
 def read_file_sev_blocks_float(fname):
     with open(fname, 'r') as fil:
         lines = [[float(field) for field in line.split()] for line in fil
@@ -162,7 +159,6 @@ def read_file_sev_blocks_float(fname):
     return split_list(lines)
 
 
-@ignore_missing_file
 def read_file_sev_blocks_float_no_comment(fname):
     with open(fname, 'r') as fil:
         lines = [[float(field) for field in line.split()] for line in fil]
@@ -204,7 +200,6 @@ def num(s):
             return s
 
 
-@ignore_missing_file
 def read_file_one_block(fname):
     with open(fname, 'r') as fil:
         block = [[num(element) for element in line.split()]
@@ -212,7 +207,6 @@ def read_file_one_block(fname):
     return block
 
 
-@ignore_missing_file
 def read_file_one_block_c(fname):
     with open(fname, 'r') as fil:
         block = [[num_c(element) for element in line.split()]
@@ -220,7 +214,6 @@ def read_file_one_block_c(fname):
     return block
 
 
-@ignore_missing_file
 def read_file_one_block_numpy(fname):
     import numpy as np
     block = read_file_one_block(fname)
