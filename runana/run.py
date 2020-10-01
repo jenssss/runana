@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 from sys import stdout
-from os import path, getcwd, listdir, chdir, makedirs
+from os import path, getcwd, listdir, chdir, makedirs, remove
 from subprocess import call
 from io import FileIO
 from glob import glob
@@ -343,8 +343,31 @@ def is_it_tuple(it):
         return it
 
 
+@contextmanager
+def NamedTempFile(name, mode="w", **kwargs):
+    """Contextmanager for creating a named temporary file """
+    try:
+        with open(name, mode=mode, **kwargs) as f:
+            yield f
+    finally:
+        with ignored(FileNotFoundError):
+            remove(name)
+
+
 def run_core(programs, inp_file_relative, use_stdin=False,
-             use_inp_file=True):
+             use_inp_file=True, add_temp_ignore_file=True):
+    if add_temp_ignore_file:
+        print("Adding ignore file")
+        with NamedTempFile("ignore"):
+            run_core_inner(programs, inp_file_relative, use_stdin,
+                           use_inp_file)
+    else:
+        run_core_inner(programs, inp_file_relative, use_stdin,
+                       use_inp_file)
+
+
+def run_core_inner(programs, inp_file_relative, use_stdin=False,
+                   use_inp_file=True):
     for program in programs:
         if hasattr(program, '__call__'):
             if use_inp_file:
