@@ -357,7 +357,6 @@ def NamedTempFile(name, mode="w", **kwargs):
 def run_core(programs, inp_file_relative, use_stdin=False,
              use_inp_file=True, add_temp_ignore_file=True):
     if add_temp_ignore_file:
-        print("Adding ignore file")
         with NamedTempFile("ignore"):
             run_core_inner(programs, inp_file_relative, use_stdin,
                            use_inp_file)
@@ -455,7 +454,7 @@ def pick_filter_func(filter_func, calc_all):
 def execute(programs, input_file, dirs,
             chain_iters={}, product_iters={}, co_iters={}, just_replace={},
             filter_func='f90nml', use_stdin=False,
-            calc_all=calc_all):
+            calc_all=calc_all, **kwargs):
     """Run sequence of programs with different parameters defined by iters.
 
     :param list programs: List of strings with names of programs. Should
@@ -495,7 +494,7 @@ def execute(programs, input_file, dirs,
                                       co_iters=co_iters,
                                       just_replace=just_replace):
         dir_ID = calc_all(replacers, dirs, input_file, programs,
-                          use_stdin=use_stdin)
+                          use_stdin=use_stdin, **kwargs)
         dir_IDs.append(dir_ID)
     return dir_IDs
 
