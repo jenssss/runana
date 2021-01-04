@@ -106,7 +106,7 @@ directory that is the join of `workdir` and the argument to the function
     return read_from_dir(roll_in_args(read_func, *args, **kwargs), workdir)
 
 
-@ignored(TypeError)
+# @ignored(TypeError)
 def collect(dir_, read_func):
     """ Switches to `dir_` and runs `read_func`"""
     with cwd(dir_):

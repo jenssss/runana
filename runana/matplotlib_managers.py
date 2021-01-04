@@ -81,7 +81,8 @@ class webmMovie(IndivFiles):
         if self.file_ext_video == ".webm":
             options = ["-y", "-c:v", "libvpx-vp9", "-b:v", self.bitrate]
         elif self.file_ext_video == ".mp4":
-            options = ["-y", "-c:v", "libx246", "-b:v", self.bitrate]
+            options = ["-y", "-c:v", "libx264", "-b:v", self.bitrate]
+            options += ["-pix_fmt", "yuv420p"]
         else:
             raise ValueError("Unsupported file_ext: " + self.file_ext_video)
         args = ["ffmpeg"]
