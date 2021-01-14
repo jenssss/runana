@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="runana",
-    version="0.1.4",
+    version="0.1.5",
     author="Jens Svensmark",
     author_email="jenssss@uec.ac.jp",
     # description = ("An demonstration of how to create, document, and publish "
