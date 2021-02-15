@@ -23,15 +23,15 @@ def collecting_loop_recursive(dir_, read_func,
     subdirs = get_subdirs(dir_)
     for subdir in subdirs or []:
         asubdir = path.join(dir_, subdir)
-        if any(path.exists(path.join(asubdir, fname)) for fname in look_for_these):
-            if not any(path.exists(path.join(asubdir, fname)) for fname in ignore_these):
+        if not any(path.exists(path.join(asubdir, fname)) for fname in ignore_these):
+            if any(path.exists(path.join(asubdir, fname)) for fname in look_for_these):
                 with cwd(asubdir):
                     value = read_func()
                 yield (subdir, ), value
-        else:
-            for dirs, vals in collecting_loop_recursive(path.join(dir_, subdir),
-                                                        read_func):
-                yield (subdir, )+dirs, vals
+            else:
+                for dirs, vals in collecting_loop_recursive(path.join(dir_, subdir),
+                                                            read_func):
+                    yield (subdir, )+dirs, vals
 
 
 def read_input_files(workdir, indices=[], read_func=read_input_files_f90nml):
