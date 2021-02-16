@@ -52,12 +52,12 @@ class SeqsDataFrame(pd.DataFrame):
         list_ = list(iterate_seqs(seqsnew, varvals))
         for multi_idx, dir_ in list_:
             seqsdf.loc[multi_idx] = whatever_scalar
-        # for multi_idx, dir_ in list_:
-# It might seem strange to repeat the same command twice, and indeed it is.
-# It seems that pandas unpacks a tuple of length 1 first time its inserted,
-# but not the second time...
-            seqsdf.loc[multi_idx] = dir_
-            seqsdf.loc[multi_idx] = dir_
+            # for multi_idx, dir_ in list_:
+            # It might seem strange to repeat the same command twice, and indeed it is.
+            # It seems that pandas unpacks a tuple of length 1 first time its inserted,
+            # but not the second time...
+            seqsdf.at[multi_idx] = dir_
+            seqsdf.at[multi_idx] = dir_
         if not inplace:
             return seqsdf
 
