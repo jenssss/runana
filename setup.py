@@ -5,12 +5,23 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+VERSION = "0.1.5"
 
 setup(
     name="runana",
-    version="0.1.5",
+    version=VERSION,
     author="Jens Svensmark",
     author_email="jenssss@uec.ac.jp",
+    version_config={
+        # "dev_template": VERSION+".dev{ccount}",
+        # "starting_version": VERSION,
+        # "template": VERSION+"lol{tag}",
+        },
+    setup_requires=["setuptools-git-versioning"],
+    # version_config={
+    #     "template": "2021.{tag}",
+    # },
+    # setup_requires=["setuptools-git-versioning"],
     # description = ("An demonstration of how to create, document, and publish "
     #                                "to the cheese shop a5 pypi.org."),
     # license = "BSD",
