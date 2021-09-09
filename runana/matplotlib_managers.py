@@ -1,9 +1,9 @@
 from __future__ import print_function
 
+from contextlib import contextmanager
 from os import getcwd, rename
 from os.path import splitext, abspath, split
 from os.path import join as pjoin
-from contextlib import contextmanager
 
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas

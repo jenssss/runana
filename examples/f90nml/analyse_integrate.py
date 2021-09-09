@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 
 from runana import analyse
@@ -8,66 +9,32 @@ from runana import read_numbers
 def run_analysis(workdir):
     print(workdir)
 
-    dict_w_parameters = analyse.read_input_files(workdir)
+    params_to_dirs = analyse.read_input_files(workdir)
 
-    dict_w_parameters.diff()
+    params_to_dirs.diff()
 
-    changedsparams = analyse.ChangedParams(dict_w_parameters)
-    from pprint import pprint
-    pprint(changedsparams)
-    varvals, pairs = changedsparams.identify_pairs()
-    pprint(pairs)
-    connected = analyse.find_connected_components(pairs)
-    pprint(connected)
-    # pprint(varvals)
-    double_var = dict((key, list_) for key, list_ in connected.items() if len(key) == 2)
-    pprint(double_var)
+    panda_data = analyse_pandas.make_a_seq_panda(params_to_dirs)
 
-    double_pandas = analyse_pandas.import_from_double_var(double_var, varvals)
-    double_var_vectors = analyse_pandas.double_var_vectors(double_var, varvals)
-    from runana import matplotlib_managers as mplm
-    pattern = 'Integral'
-    read_var = analyse.make_collector_function(workdir, read_numbers.
-                                               read_last_number_from_file,
-                                               fname='integrate.stdout',
-                                               pattern=pattern)
-    for namevals, double_panda  in analyse_pandas.double_var_iter(double_pandas):
-        print(double_panda.applymap(read_var))
-
-    with mplm.plot_manager('double_var_test.pdf') as pp:
-        for namevals, (x, y, dirs) in analyse_pandas.double_var_iter(double_var_vectors):
-            with mplm.single_ax_manager(pp) as ax:
-                z = list(map(read_var,dirs))
-                ax.tripcolor(x, y, z)
-                # ax[1].tricontourf(x,y,z, 20)
-                ax.plot(x, y, 'ko ')
-                ax.set_xlabel(namevals[0][1])
-                ax.set_ylabel(namevals[1][1])
-
-    # raise SystemExit
-
-    seqs = analyse.Seqs(dict_w_parameters)
-
-    panda_data = analyse_pandas.SeqsDataFrame().import_from_seq(seqs)
-    print(panda_data)
-
-    for pattern in ['Integral']:
-        panda_var = panda_data.applymap(read_var)
-        print(panda_var)
-
-        panda_conv = panda_var.calc_convergence()
-        # print(panda_conv)
-        param_panda = panda_data.applymap(analyse_pandas.
-                                          return_dict_element(dict_w_parameters))
-        # panda_var.plot(,'plot_test_'+pattern+'.pdf',
-        #                      logy=False, param_panda=param_panda)
-        panda_conv.plot_('plot_test_'+pattern+'.pdf',
-                         logy=True, param_panda=param_panda)
-
-
-if (__name__ == "__main__"):
-    with open('latest_run_dir.txt') as file_:
-        workdir = file_.read()
-    run_analysis(
-        workdir=workdir
+    read_var = analyse.make_collector_function(
+        workdir,
+        read_numbers.read_last_number_from_file,
+        fname="integrate_test.py.stdout",
+        pattern="Integral",
     )
+    panda_var = panda_data.applymap(read_var)
+    print("Values of integral")
+    print(panda_var)
+
+    panda_conv = panda_var.calc_convergence()
+    print("Estimated difference between current and fully converged value")
+    print(panda_conv)
+    param_panda = panda_data.applymap(
+        analyse_pandas.return_dict_element(params_to_dirs)
+    )
+    panda_conv.plot_("plot_test_integral.pdf", logy=True, param_panda=param_panda)
+
+
+if __name__ == "__main__":
+    with open("latest_run_dir.txt") as file_:
+        workdir = file_.read()
+    run_analysis(workdir=workdir)

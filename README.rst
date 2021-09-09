@@ -32,5 +32,9 @@ Users without install privileges can append the ``--user`` flag to
    $ python setup.py install --user
 
 
+Similar software
+================
+
+https://github.com/ioam/lancet
 
    

@@ -357,7 +357,7 @@ def conso(s):
 
 def groupby_n_var_params(dict_w_params, n_var_params=1):
     """ Convenience function for finding sets of data for which
- `n_var_params` parameters are changing """
+    `n_var_params` parameters are changing """
     dict_w_params = dict_w_params.copy()
     dictdiff(dict_w_params)
     changedsparams = ChangedParams(dict_w_params)

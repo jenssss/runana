@@ -1,9 +1,11 @@
+#!/usr/bin/env python
 from __future__ import print_function
+
+from pprint import pprint
 
 from runana import analyse
 from runana import analyse_pandas
 from runana import read_numbers
-from pprint import pprint
 
 
 def run_analysis(workdir):
@@ -11,14 +13,16 @@ def run_analysis(workdir):
 
     dict_w_parameters = analyse.read_input_files(workdir)
 
+    # print(dict_w_parameters)
     dict_w_parameters.diff()
+    print(dict_w_parameters)
 
-    panda_data = make_a_seq_panda(dict_w_params):
+    panda_data = analyse_pandas.make_a_seq_panda(dict_w_parameters)
     print(panda_data)
 
     read_var = analyse.make_collector_function(workdir,
                                                read_numbers.read_number_from_file,
-                                               fname='example.stdout', inumber=1)
+                                               fname='example_program.py.stdout', inumber=1)
 
     panda_var = panda_data.applymap(read_var)
     print(panda_var)

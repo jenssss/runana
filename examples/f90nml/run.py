@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 from __future__ import print_function
 from os import path, getcwd
 
@@ -21,6 +21,9 @@ def main():
                     chain_iters=chain_iters, product_iters=product_iters,
                     co_iters=co_iters, just_replace=just_replace)
 
+    with open('latest_run_dir.txt','w') as file_:
+        file_.write(scratch_base)
+
 
 def setup_programs():
     programs = ['example_program.py', ]
@@ -39,8 +42,8 @@ def setup_replacers():
     product_iters = {}
     chain_iters = {}
     co_iters = {}
-    # chain_iters = some_iters
-    co_iters = some_iters
+    chain_iters = some_iters
+    # co_iters = some_iters
     just_replace = {('nlGroup2', 'varb'): -3.0}
     just_replace = {}
     from pprint import pprint
@@ -51,17 +54,3 @@ def setup_replacers():
 
 if __name__ == "__main__":
     main()
-
-# just_replace = {('nlGroup2', 'varb'): -3.0}
-# nvar_values = 4
-# some_iters = {('nlGroup', 'var'): run.generate_list(
-#     start=1, incr=1, incr_func='add', nvalues=nvar_values),}
-# chain_iters = some_iters
-# with run.print_time():
-#     run.execute(programs, input_file, scratch_base, chain_iters=chain_iters, product_iters=product_iters, just_replace=just_replace)
-    
-# with open('latest_run_dir.txt', 'w') as file_:
-#     file_.write(scratch_base)
-
-# import analyse
-# analyse.run_analysis(scratch_base)

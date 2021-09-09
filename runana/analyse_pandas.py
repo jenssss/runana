@@ -62,13 +62,15 @@ class SeqsDataFrame(pd.DataFrame):
             return seqsdf
 
     def calc_reldiff(self):
-        """ Calculate relative difference of values and numerical parameter values
+        """Calculate relative difference of values and numerical parameter values.
 
-        `(O2-O1)/(x2-x1)` where `O` are values and `x` are numerical parameters
+        `(O2-O1)/(x2-x1)` where `O` are values and `x` are numerical
+        parameters.
 
-        All numerical parameter values have to be scalar and numeric
+        All numerical parameter values have to be scalar and numeric.
 
-        Returns a new SeqsDataFrame
+        Returns a new `SeqsDataFrame`.
+
         """
         import numpy as np
         data_out = self.copy()
@@ -86,12 +88,17 @@ class SeqsDataFrame(pd.DataFrame):
         return data_out
 
     def calc_convergence(self):
-        """ Calculate `(O2-O1)/O2*x2/(x2-x1)` where `O` are values and `x` are
- numerical parameters
+        """Calculate an estimate for relative convergence error.
 
-        All numerical parameter values have to be scalar and numeric
+        Calculates `(O2-O1)/O2*x2/(x2-x1)` where `O` are values and `x`
+        are numerical parameters, which is an estimate of the difference
+        between the value calculated at the given numerical parameter
+        and the "true" value of the fully converged limit.
 
-        Returns a new SeqsDataFrame
+        All numerical parameter values have to be scalar and numeric.
+
+        Returns a new `SeqsDataFrame`.
+
         """
         import numpy as np
         try:
