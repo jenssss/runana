@@ -22,16 +22,18 @@ def run_analysis(workdir):
         pattern="Integral",
     )
     panda_var = panda_data.applymap(read_var)
-    print("Values of integral")
+    print("Values of integral:")
     print(panda_var)
 
     panda_conv = panda_var.calc_convergence()
-    print("Estimated difference between current and fully converged value")
+    print()
+    print("Estimated difference between current and fully converged value:")
     print(panda_conv)
     param_panda = panda_data.applymap(
         analyse_pandas.return_dict_element(params_to_dirs)
     )
-    panda_conv.plot_("plot_test_integral.pdf", logy=True, param_panda=param_panda)
+    panda_var.plot_("plot_test_integral_var.pdf", param_panda=param_panda)
+    panda_conv.plot_("plot_test_integral_conv.pdf", logy=True, param_panda=param_panda)
 
 
 if __name__ == "__main__":
